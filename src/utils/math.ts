@@ -1,4 +1,4 @@
-import type { Geometry, ParsedPB2XMLObject, Position, WorldBoundary } from './types.js';
+import type { ParsedPB2XMLObject, Position, WorldBoundary } from './types.js';
 
 export const clamp = (val: number, min: number, max: number) => Math.max(min, Math.min(max, Math.round(val)));
 
@@ -18,5 +18,19 @@ export const parseGeometry = (pb2Object: ParsedPB2XMLObject): Geometry => {
 		y: Number(pb2Object.$.y ?? 0),
 		w: Number(pb2Object.$.w ?? 0),
 		h: Number(pb2Object.$.h ?? 0),
+	};
+};
+
+export interface Geometry {
+	x: number;
+	y: number;
+	w: number;
+	h: number;
+}
+
+export const getCenterPosition = (geometry: Geometry) => {
+	return {
+		x: geometry.x + geometry.w / 2,
+		y: geometry.y + geometry.h / 2,
 	};
 };

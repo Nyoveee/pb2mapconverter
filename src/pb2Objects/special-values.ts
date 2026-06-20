@@ -1,3 +1,5 @@
+import type { RegionEntity } from './entity-types.js';
+
 export const teamNames: Record<number, string> = {
 	0: 'Alpha',
 	1: 'Beta',
@@ -137,35 +139,33 @@ export const PB2SkinToPB3: Record<number, number | null> = {
     */
 };
 
+export const NO_ACTIVATION_METHOD = 0;
+const USE_METHOD = 1;
+const CHARACTER_NOT_IN_A_VEHICLE = 2;
+const CHARACTER_IN_A_VEHICLE = 3;
+const CHARACTER = 4;
+const MOVABLE = 5;
+const PLAYER = 6;
+const ALL_SINGLE_PLAYER_HEROES = 7;
+const USE_INVISIBLE_BUTTON = 8;
+const USE_RED_TEAM_ONLY = 9;
+const USE_BLUE_TEAM_ONLY = 10;
+const USE_RED_TEAM_ONLY_INVISIBLE = 11;
+const USE_BLUE_TEAM_ONLY_INVISIBLE = 12;
+const RED_TEAM_PLAYER_ONLY = 13;
+const BLUE_TEAM_PLAYER_ONLY = 14;
+const USE_BUTTON_INVISIBLE_NO_SOUND = 15;
+const PROJECTILE_OR_SWORD = 16;
+const ACTOR_ONLY = 17;
+const ACTOR_NOT_ALLIED_TO_PLAYER = 18;
+
 export const PB2GunModelToPB3Gadget: Record<string, string> = {
 	item_grenade: 'HE', // pb2ArmsAction.ACTION_TYPE_THROW_GRENADE_HE
 	item_port: 'PORT', // pb2ArmsAction.ACTION_TYPE_THROW_GRENADE_PORT
 	item_shield: 'SHIELD', // pb2ArmsAction.ACTION_TYPE_THROW_GRENADE_SHIELD
 };
 
-export const getRegionSpecificProperties = (activationClause: number) => {
-	/* eslint-disable @typescript-eslint/no-unused-vars -- These are useful sentinel values reflecting PB2 properties */
-	const NO_ACTIVATION_METHOD = 0;
-	const USE_METHOD = 1;
-	const CHARACTER_NOT_IN_A_VEHICLE = 2;
-	const CHARACTER_IN_A_VEHICLE = 3;
-	const CHARACTER = 4;
-	const MOVABLE = 5;
-	const PLAYER = 6;
-	const ALL_SINGLE_PLAYER_HEROES = 7;
-	const USE_INVISIBLE_BUTTON = 8;
-	const USE_RED_TEAM_ONLY = 9;
-	const USE_BLUE_TEAM_ONLY = 10;
-	const USE_RED_TEAM_ONLY_INVISIBLE = 11;
-	const USE_BLUE_TEAM_ONLY_INVISIBLE = 12;
-	const RED_TEAM_PLAYER_ONLY = 13;
-	const BLUE_TEAM_PLAYER_ONLY = 14;
-	const USE_BUTTON_INVISIBLE_NO_SOUND = 15;
-	const PROJECTILE_OR_SWORD = 16;
-	const ACTOR_ONLY = 17;
-	const ACTOR_NOT_ALLIED_TO_PLAYER = 18;
-	/* eslint-enable, no-unused-vars */
-
+export const getRegionSpecificProperties = (region: RegionEntity) => {
 	const react_to_ragdolls = [
 		CHARACTER,
 		CHARACTER_NOT_IN_A_VEHICLE,
@@ -175,17 +175,19 @@ export const getRegionSpecificProperties = (activationClause: number) => {
 		ALL_SINGLE_PLAYER_HEROES,
 		ACTOR_ONLY,
 		ACTOR_NOT_ALLIED_TO_PLAYER,
-	].includes(activationClause);
+	].includes(region.activationClause);
 
 	// prettier-ignore
 	const react_to_bullets = [
 		PROJECTILE_OR_SWORD
-	].includes(activationClause);
+	].includes(region.activationClause);
 
 	// prettier-ignore
 	const react_to_exact_movables = [
 		MOVABLE
-	].includes(activationClause);
+	].includes(region.activationClause);
+
+	const react_to_entities = [CHARACTER_IN_A_VEHICLE].includes(region.activationClause);
 
 	return {
 		increased_accuracy: 'false',
@@ -195,10 +197,22 @@ export const getRegionSpecificProperties = (activationClause: number) => {
 		react_to_grenades: 'false',
 		react_to_grappling_hooks: 'false',
 		react_to_shields: 'false',
-		react_to_entities: 'false',
-		react_to_exact_movables: 'false',
+		react_to_entities: `${react_to_entities}`,
+		react_to_exact_movables: `${react_to_exact_movables}`,
 		onEnter: 'null',
 		onLeave: 'null',
 		onSubstep: 'null',
 	};
+};
+
+export const isRegionAUSEButton = (activationClause: number) => {
+	return [
+		USE_METHOD,
+		USE_INVISIBLE_BUTTON,
+		USE_RED_TEAM_ONLY,
+		USE_RED_TEAM_ONLY_INVISIBLE,
+		USE_BLUE_TEAM_ONLY,
+		USE_BLUE_TEAM_ONLY_INVISIBLE,
+		USE_BUTTON_INVISIBLE_NO_SOUND,
+	].includes(activationClause);
 };

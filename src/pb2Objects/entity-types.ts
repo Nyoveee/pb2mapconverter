@@ -43,6 +43,13 @@ export interface PointEntity {
 	position: Position;
 }
 
+export interface UseButtonEntity {
+	uid: string;
+	position: Position;
+	triggerToExecuteUID: string | null;
+	attachedMovableUID: string | null;
+}
+
 // ===============================================
 // PB2/PB3 Objects
 // ===============================================

@@ -96,7 +96,7 @@ export const serializeBox = ({
 				}),
 
 		// Add region specific properties
-		...(kind !== 'region' ? {} : getRegionSpecificProperties(entity.activationClause)),
+		...(kind !== 'region' ? {} : getRegionSpecificProperties(entity)),
 	};
 
 	return toPB3String({ code: code, jsonObject: JSON.stringify(editor_object) });

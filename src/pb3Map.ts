@@ -20,11 +20,12 @@ import type {
 	AIPresetEntity,
 	PointEntity,
 	RegionEntity,
+	UseButtonEntity,
 } from '#pb2Objects/entity-types.js';
 import { getBackgroundKey, type BackgroundIdentifierStr } from '#pb2Objects/surface.js';
 import { getLiquidKindKey, type LiquidIdentifierStr } from '#pb2Objects/liquid.js';
 
-import { parseGeometry, updateWorldBoundary } from '#utils/math.js';
+import { getCenterPosition, parseGeometry, updateWorldBoundary } from '#utils/math.js';
 import { PB3StandardFooter, PB3StandardMapHeader, serializeForceRegenScript, serializeMapConfigureScript } from '#serialize/serialize.js';
 import { serializeBox } from '#serialize/box.js';
 import { serializeSurface, SurfaceType } from '#serialize/surface.js';
@@ -42,9 +43,17 @@ import { serializeTeam } from '#serialize/team.js';
 import { serializeSkin } from '#serialize/skin.js';
 import { serializeAIPreset } from '#serialize/ai-preset.js';
 import { serializeCharacter } from '#serialize/character.js';
-import { PB2GunModelToPB3, PB2GunModelToPB3Gadget, PB2SkinToPB3, teamNames } from '#pb2Objects/special-values.js';
+import {
+	isRegionAUSEButton,
+	NO_ACTIVATION_METHOD,
+	PB2GunModelToPB3,
+	PB2GunModelToPB3Gadget,
+	PB2SkinToPB3,
+	teamNames,
+} from '#pb2Objects/special-values.js';
 import { serializePoint } from '#serialize/point.js';
 import { getGrenadeSpawnPointUID, serializeSpawnGrenadesScript } from '#serialize/grenade.js';
+import { serializeUseButton } from '#serialize/useButton.js';
 
 export class PB3Map {
 	// ============================================================================================
@@ -62,8 +71,9 @@ export class PB3Map {
 	private wallSurfaces: Record<number, SurfaceEntity> = {}; // maps every unique PB2 wall material (an id) with a created wall surface.
 	private backgroundSurfaces: Record<BackgroundIdentifierStr, SurfaceEntity> = {}; // maps every unique PB2 background material + color mult with a created background surface.
 	private liquidKinds: Record<LiquidIdentifierStr, LiquidKindEntity> = {}; // maps every unique PB2 water property with a created liquid kind.
-	private movableSurfaces: Partial<Record<BooleanAsString, SurfaceEntity>> = {}; // maps every unique PB2 door "look" with a movable surface. (tbh there's only in/visible
-	// but it's better to be consistent with the existing architecture.
+	private movableSurfaces: Partial<Record<BooleanAsString, SurfaceEntity>> = {}; // maps every unique PB2 door "look" with a movable surface.
+
+	private useButtons: UseButtonEntity[] = [];
 
 	private teams: Record<number, TeamEntity> = {}; // maps every unique PB2 team number property with a created team.
 	private skins: Record<number, SkinEntity> = {};
@@ -220,6 +230,10 @@ export class PB3Map {
 
 		for (const region of this.regions) {
 			pb3SourceCode += serializeBox({ kind: 'region', entity: region });
+		}
+
+		for (const useButton of this.useButtons) {
+			pb3SourceCode += serializeUseButton(useButton);
 		}
 
 		for (const lamp of this.lamps) {
@@ -507,12 +521,38 @@ export class PB3Map {
 
 		for (const pb2Object of pb2Objects) {
 			const geometry = parseGeometry(pb2Object);
+			let activationClause = Number(pb2Object.$.use_on ?? 0);
+			let triggerToExecuteUID = pb2Object.$.use_target ?? null;
+			let attachedMovableUID = pb2Object.$.attach ?? null;
+
+			if (attachedMovableUID === '-1') {
+				attachedMovableUID = null;
+			}
+
+			if (triggerToExecuteUID === '-1') {
+				triggerToExecuteUID = null;
+			}
+
+			// If a PB2 region has a use button, we will create a USE button PB3 entity, inheriting the properties from the original region/
+			// The other region will be preserved as it may be used by other triggers. @todo: make it configurable..
+			if (isRegionAUSEButton(activationClause)) {
+				this.useButtons.push({
+					uid: '',
+					position: getCenterPosition(geometry),
+					triggerToExecuteUID: triggerToExecuteUID,
+					attachedMovableUID: attachedMovableUID,
+				});
+
+				// We strip away the trigger properties from the original region..
+				activationClause = NO_ACTIVATION_METHOD;
+				triggerToExecuteUID = null;
+			}
 
 			regions.push({
 				geometry: geometry,
-				activationClause: Number(pb2Object.$.use_on ?? 0),
-				triggerToExecuteUID: null,
-				attachedMovableUID: null,
+				activationClause: activationClause,
+				triggerToExecuteUID: triggerToExecuteUID,
+				attachedMovableUID: attachedMovableUID,
 			});
 
 			updateWorldBoundary(this.worldBoundary, geometry);
