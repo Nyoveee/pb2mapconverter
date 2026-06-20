@@ -34,18 +34,32 @@ export const toPB3String = ({ code, jsonObject }: { code: string; jsonObject: st
  * This works by exploiting the fact that subtracting 0 health from a player forces regeneration in PB3.
  * */
 export const serializeForceRegenScript = (x: number, y: number): string => {
-	return makeScript(x, y, 'pb2Character.characters.filter(c=>c.hea!==c.hmax&&c.hea>0).forEach(c=>c.SubstractHealth(0));');
+	let code = `
+/* 
+    In PB3, character that has their current health less than their max health doesn't regenerate their health.
+
+    This script damages all PB3 character that doesn't have max health with a value of 0, forcing health regeneration
+    which imitates PB2 behavior.
+
+    If this effect is not desired, you may remove the script.
+*/
+`;
+
+	code += 'pb2Character.characters.filter(c=>c.hea!==c.hmax&&c.hea>0).forEach(c=>c.SubstractHealth(0));';
+	return makeScript(x, y, code);
 };
 
 /** script that configures map settings to be closer to pb2 */
 export const serializeMapConfigureScript = (x: number, y: number): string => {
 	let code = `
-        This script changes the current setting such that it closely resembles PB2 settings. 
-        You may remove this script if desired.
-    `;
-	code += 'pb2GunDisposer.normal_time_to_live=Infinity;';
-	code += 'pb2RagdollDisposer.normal_time_to_live=Infinity;'; // todo omit if force ragdoll disappear engine mark
-	code += 'pb2Bullet.friction_wall=0.5;'; // similar bullet penetration as pb2
+/* 
+    This script changes the current setting such that it closely resembles PB2 settings. 
+    You may remove this script if desired.
+*/
+`;
+	code += 'pb2GunDisposer.normal_time_to_live=Infinity;\n';
+	code += 'pb2RagdollDisposer.normal_time_to_live=Infinity;\n'; // todo omit if force ragdoll disappear engine mark
+	code += 'pb2Bullet.friction_wall=0.5;\n'; // similar bullet penetration as pb2
 
 	return makeScript(x, y, code);
 };
