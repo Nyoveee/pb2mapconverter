@@ -1,4 +1,4 @@
-import type { Geometry, ParsedPB2XMLObject, Position, WorldBoundary } from "./types.js";
+import type { Geometry, ParsedPB2XMLObject, Position, WorldBoundary } from './types.js';
 
 export const clamp = (val: number, min: number, max: number) => Math.max(min, Math.min(max, Math.round(val)));
 

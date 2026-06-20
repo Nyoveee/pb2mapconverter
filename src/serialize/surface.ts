@@ -64,7 +64,8 @@ const _serializeSurface = (
 	// for avoiding ditto mismatch
 	const includeName = toGenerateTerrain;
 	const includeFoliageTemplate = toGenerateTerrain && surfaceTerrain === 'Grass';
-	const includeHasCliff = toGenerateTerrain && (surfaceTerrain === 'Ground' || surfaceTerrain === 'Grass' || surfaceTerrain === 'Sand' || surfaceTerrain === 'Cliff');
+	const includeHasCliff =
+		toGenerateTerrain && (surfaceTerrain === 'Ground' || surfaceTerrain === 'Grass' || surfaceTerrain === 'Sand' || surfaceTerrain === 'Cliff');
 	const includeHasGround = toGenerateTerrain && (surfaceTerrain === 'Grass' || surfaceTerrain === 'Sand' || surfaceTerrain === 'Cliff');
 	const includeImpactScale = is_wall;
 

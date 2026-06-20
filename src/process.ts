@@ -15,7 +15,7 @@ const processPB2XMLFile = async (pb2XMLFile: string): Promise<string | undefined
 
 	// Parse the XML string into a javascript object.
 	// Refer to xml2js for object layout documentation. For PB2 maps specifically we are primarily concern with extracting the attributes.
-	const xmlFile = await parseStringPromise(escapeAmpersand(pb2XMLFile)) as XLMParseOutput;
+	const xmlFile = (await parseStringPromise(escapeAmpersand(pb2XMLFile))) as XLMParseOutput;
 	// Constructs a valid typed PB2 map from the given XML object.
 	const map = new PB3Map(xmlFile);
 

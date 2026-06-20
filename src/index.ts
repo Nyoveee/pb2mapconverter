@@ -19,39 +19,39 @@ const upload: Multer = multer({ storage: multer.memoryStorage() });
 app.use(express.static('public'));
 
 app.listen(port, () => {
-    console.log(`Server is listening on port: ${port}`);
+	console.log(`Server is listening on port: ${port}`);
 });
 
 // API endpoint to handle conversion..
 app.post('/upload', upload.single('file'), async (req: Request, res: Response) => {
-    try {
-        // Type guard for file
-        if (!req.file) {
-            return res.status(400).json({ error: 'No file uploaded' });
-        }
+	try {
+		// Type guard for file
+		if (!req.file) {
+			return res.status(400).json({ error: 'No file uploaded' });
+		}
 
-        // Read the file content
-        const fileContent = req.file.buffer.toString('utf-8');
+		// Read the file content
+		const fileContent = req.file.buffer.toString('utf-8');
 
-        // Process the PB2 XML file into PB3 source code in a form of a string (may fail)
-        const result = await processPB2XMLFile(fileContent);
+		// Process the PB2 XML file into PB3 source code in a form of a string (may fail)
+		const result = await processPB2XMLFile(fileContent);
 
-        if (!result) {
-            return res.status(400).json({
-                details: 'Error encountered when converting file.',
-                error: 'Invalid XML file',
-            });
-        }
+		if (!result) {
+			return res.status(400).json({
+				details: 'Error encountered when converting file.',
+				error: 'Invalid XML file',
+			});
+		}
 
-        // If parsing succeeds, it's valid XML
-        return res.json({
-            data: result,
-        });
-    } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-        return res.status(400).json({
-            details: errorMessage,
-            error: 'Invalid XML file',
-        });
-    }
+		// If parsing succeeds, it's valid XML
+		return res.json({
+			data: result,
+		});
+	} catch (error) {
+		const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+		return res.status(400).json({
+			details: errorMessage,
+			error: 'Invalid XML file',
+		});
+	}
 });

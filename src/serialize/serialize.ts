@@ -29,31 +29,38 @@ export const toPB3String = ({ code, jsonObject }: { code: string; jsonObject: st
 	return finalString;
 };
 
-/** script that starts regen if the character was created with less hp than max */
+/**
+ * Script that starts regen if the character was created with less hp than max
+ * This works by exploiting the fact that subtracting 0 health from a player forces regeneration in PB3.
+ * */
 export const serializeForceRegenScript = (x: number, y: number): string => {
-    return makeScript(x, y, 'pb2Character.characters.filter(c=>c.hea!==c.hmax&&c.hea>0).forEach(c=>c.SubstractHealth(0));')
+	return makeScript(x, y, 'pb2Character.characters.filter(c=>c.hea!==c.hmax&&c.hea>0).forEach(c=>c.SubstractHealth(0));');
 };
 
 /** script that configures map settings to be closer to pb2 */
 export const serializeMapConfigureScript = (x: number, y: number): string => {
-    let code = '';
-    code += 'pb2GunDisposer.normal_time_to_live=Infinity;';
-    code += 'pb2RagdollDisposer.normal_time_to_live=Infinity;'; // todo omit if force ragdoll disappear engine mark
-    code += 'pb2Bullet.friction_wall=0.5;'; // similar bullet penetration as pb2
-    return makeScript(x, y, code);
+	let code = `
+        This script changes the current setting such that it closely resembles PB2 settings. 
+        You may remove this script if desired.
+    `;
+	code += 'pb2GunDisposer.normal_time_to_live=Infinity;';
+	code += 'pb2RagdollDisposer.normal_time_to_live=Infinity;'; // todo omit if force ragdoll disappear engine mark
+	code += 'pb2Bullet.friction_wall=0.5;'; // similar bullet penetration as pb2
+
+	return makeScript(x, y, code);
 };
 
 export const makeScript = (x: number, y: number, code: string): string => {
-    const editor_object = {
-        "operation":"code",
-        "snippet_color":"0xb1b1ff",
-        "code":code,
-        "x":x.toString(),
-        "y":y.toString(),
-        "_visible":"1",
-        "_locked":"0",
-        "_disabled":"0"
-    };
-    return `${code}//->Ditto->//${JSON.stringify(editor_object)}\n`;
-    //return toPB3String({ code: code, jsonObject: JSON.stringify(editor_object) });
-}
+	const editor_object = {
+		operation: 'code',
+		snippet_color: '0xb1b1ff',
+		code: code,
+		x: x.toString(),
+		y: y.toString(),
+		_visible: '1',
+		_locked: '0',
+		_disabled: '0',
+	};
+
+	return `${code}//->Ditto->//${JSON.stringify(editor_object)}\n`;
+};

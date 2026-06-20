@@ -1,19 +1,26 @@
-import { makeScript } from "./serialize.js";
+import { makeScript } from './serialize.js';
 
-// grenades are bullets instead of guns in pb3 and bullets can't be created via script easily, 
+// grenades are bullets instead of guns in pb3 and bullets can't be created via script easily,
 // so instead a point is created for each grenade position and a script puts a grenade into every grenade spawn point
 
 export const getGrenadeSpawnPointUID = (count: number, model: string): string => {
-    return `gadget_spawn_point${count}__${model}`;
-}
+	return `gadget_spawn_point${count}__${model}`;
+};
 
 /**
- * script that spawns grenades into points with uids matching getGrenadeSpawnPointUID(count, model). kind of a hack but it works.  
+ * script that spawns grenades into points with uids matching getGrenadeSpawnPointUID(count, model). kind of a hack but it works.
  * this sets pb2BulletDisposer.normal_time_to_live = Infinity so the grenades don't despawn. not sure if that has downsides. normal bullets seem to still despawn
  */
 export const serializeSpawnGrenadesScript = (x: number, y: number): string => {
-    return makeScript(x, y, 
-`(() => {
+	// prettier-ignore
+	return makeScript(x, y,
+		`(() => {
+    /*
+        This file is responsible for spawning grenades. This works by looking all any object that starts with 'gadget_spawn_point',
+        and parsing the name that contains the grenade's properties.
+
+        This method is required because there is no one object equivalent to a PB2 grenade in PB3. 
+    */
     function spawnGadget(model, p) {
         let char = pb2Ragdoll.CreateRagdollComplete({ 
             x: p.x, 
@@ -66,5 +73,6 @@ export const serializeSpawnGrenadesScript = (x: number, y: number): string => {
         return [pb2ArmsAction.ACTION_TYPE_THROW_GRENADE_HE, p];
     })
     .forEach(([m, p]) => spawnGadget(m, p));
-})();`);
-}
+})();`,
+	);
+};

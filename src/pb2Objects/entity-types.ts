@@ -20,9 +20,9 @@ export interface LiquidKindEntity {
 }
 
 export interface TeamEntity {
-    uid: string;
+	uid: string;
 	count: number;
-    name: string;
+	name: string;
 }
 
 export interface SkinEntity {
@@ -50,7 +50,7 @@ export interface PointEntity {
 export interface WallEntity {
 	geometry: Geometry;
 	materialIndex: number;
-    surfaceUID: string; // pb3 property
+	surfaceUID: string; // pb3 property
 }
 
 export interface BackgroundEntity {
@@ -75,22 +75,22 @@ export interface WaterEntity {
 }
 
 export interface LampEntity {
-    position: Position;
-    power: number;
-    hasFlare: boolean;
+	position: Position;
+	power: number;
+	hasFlare: boolean;
 }
 
 export interface GunEntity {
-    position: Position;
+	position: Position;
 	pb2Model: string;
 	pb3Model: string;
-    team: number;
-    upgrade: number;
-    teamUID: string | null; // pb3 property
+	team: number;
+	upgrade: number;
+	teamUID: string | null; // pb3 property
 }
 
 export interface CharacterEntity {
-	position: Position,
+	position: Position;
 	velX: number;
 	velY: number;
 	hp: number;

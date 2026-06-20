@@ -3,10 +3,11 @@
 import eslint from '@eslint/js';
 import tseslint from 'typescript-eslint';
 import vitest from '@vitest/eslint-plugin';
+import eslintComments from '@eslint-community/eslint-plugin-eslint-comments';
 
 export default tseslint.config(
 	{
-		ignores: ['**/*.js'],
+		ignores: ['**/*.js', 'dist/**'],
 	},
 	eslint.configs.recommended,
 	tseslint.configs.strictTypeChecked,
@@ -20,6 +21,9 @@ export default tseslint.config(
 		},
 	},
 	{
+		plugins: {
+			'eslint-comments': eslintComments,
+		},
 		rules: {
 			'@typescript-eslint/restrict-template-expressions': [
 				'error',
@@ -37,6 +41,7 @@ export default tseslint.config(
 					caughtErrorsIgnorePattern: '^_',
 				},
 			],
+			'eslint-comments/require-description': ['error'],
 		},
 	},
 	{

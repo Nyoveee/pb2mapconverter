@@ -54,7 +54,7 @@ const pb2BackgroundMaterialToSurfaceInfo: Record<number, SurfaceInfo> = {
 export const pb2ShadowBackgroundMaterial = -1;
 
 export const createPB2WallSurface = (materialIndex: number, count: number): SurfaceEntity => {
-	// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+	// eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- index 0 should always contain a basic material, this is a hardcoded map.
 	const wallSurfaceInfo = pb2WallMaterialToSurfaceInfo[materialIndex] ?? pb2WallMaterialToSurfaceInfo[0]!;
 
 	return {
@@ -67,7 +67,7 @@ export const createPB2WallSurface = (materialIndex: number, count: number): Surf
 };
 
 export const createPB2BackgroundSurface = (materialIndex: number, count: number, color: Color): SurfaceEntity => {
-	// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+	// eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- index 0 should always contain a basic material, this is a hardcoded map.
 	const backgroundSurfaceInfo = pb2BackgroundMaterialToSurfaceInfo[materialIndex] ?? pb2BackgroundMaterialToSurfaceInfo[0]!;
 
 	return {
@@ -84,7 +84,7 @@ export const createPB2MovableSurface_isVisible = (visible: boolean) => {
 	const invisibleMovableSurfaceUID = `invisibleMovableSurface`;
 	const BLACK_WALL_INDEX = -1;
 
-	// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+	// eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- BLACK WALL INDEX should point to a valid wall material, this is a hardcoded map.
 	const backgroundSurfaceInfo = pb2WallMaterialToSurfaceInfo[BLACK_WALL_INDEX]!;
 
 	return {

@@ -28,8 +28,8 @@ export interface Geometry {
 }
 
 /**
- * -1 = left  
- * 1 = right 
+ * -1 = left
+ * 1 = right
  */
 export type Side = -1 | 1;
 

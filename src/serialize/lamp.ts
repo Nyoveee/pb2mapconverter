@@ -2,29 +2,29 @@ import type { LampEntity } from '#pb2Objects/entity-types.js';
 import { toPB3String } from './serialize.js';
 
 const DEFAULT_EDITOR_OBJECT = {
-    "operation":"create",
-    "constructor":"pb2Light.CreateLight",
-    "id":"",
-    "x":"0",
-    "y":"0",
-    "is_static":"true",
-    "color":"0xffffff",
-    "power":"0.3",
-    "flare":"true",
-    "blur":"false",
-    "z":"0",
-    "scale":"3",
-    "attachment":"null",
-    "attachment_limb_id":"0",
-    "angular_range_from":"0 / 180 * Math.PI",
-    "angular_range_length":"360 / 180 * Math.PI",
-    "_visible":"1",
-    "_locked":"0",
-    "_disabled":"0"
+	operation: 'create',
+	constructor: 'pb2Light.CreateLight',
+	id: '',
+	x: '0',
+	y: '0',
+	is_static: 'true',
+	color: '0xffffff',
+	power: '0.3',
+	flare: 'true',
+	blur: 'false',
+	z: '0',
+	scale: '3',
+	attachment: 'null',
+	attachment_limb_id: '0',
+	angular_range_from: '0 / 180 * Math.PI',
+	angular_range_length: '360 / 180 * Math.PI',
+	_visible: '1',
+	_locked: '0',
+	_disabled: '0',
 };
 
 export const serializeLamp = (entity: LampEntity): string => {
-    const code = `
+	const code = `
     pb2Light.CreateLight(
     { 
         x: ${entity.position.x}, 
@@ -37,13 +37,13 @@ export const serializeLamp = (entity: LampEntity): string => {
     });
     `;
 
-    const editor_object = {
-        ...DEFAULT_EDITOR_OBJECT,
-        x: entity.position.x.toString(),
-        y: entity.position.y.toString(),
-        power: entity.power.toString(),
-        flare: entity.hasFlare.toString(),
-    };
+	const editor_object = {
+		...DEFAULT_EDITOR_OBJECT,
+		x: entity.position.x.toString(),
+		y: entity.position.y.toString(),
+		power: entity.power.toString(),
+		flare: entity.hasFlare.toString(),
+	};
 
-    return toPB3String({ code: code, jsonObject: JSON.stringify(editor_object) });
+	return toPB3String({ code: code, jsonObject: JSON.stringify(editor_object) });
 };
