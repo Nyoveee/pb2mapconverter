@@ -13,28 +13,32 @@
     5. Region
 */
 
-import type { BackgroundEntity, MovableEntity, WallEntity, WaterEntity } from '#pb2Objects/entity-types.js';
+import type { BackgroundEntity, MovableEntity, WallEntity, WaterEntity, RegionEntity } from '#pb2Objects/entity-types.js';
+import { getRegionSpecificProperties } from '#pb2Objects/special-values.js';
 import { toPB3String } from './serialize.js';
 
-export const serializeBox = (
-	{
-		kind,
-		entity,
-	}:
-		| { kind: 'wall'; entity: WallEntity }
-		| { kind: 'background'; entity: BackgroundEntity }
-		| { kind: 'water'; entity: WaterEntity }
-		| { kind: 'movable'; entity: MovableEntity },
-	//| {kind: 'region', entity: RegionEntity} // todo
-): string => {
-	const model = kind !== 'water' ? entity.surfaceUID : null;
-	const waterClass = kind === 'water' ? entity.liquidKindUID : null;
+export const serializeBox = ({
+	kind,
+	entity,
+}:
+	| { kind: 'wall'; entity: WallEntity }
+	| { kind: 'background'; entity: BackgroundEntity }
+	| { kind: 'water'; entity: WaterEntity }
+	| { kind: 'movable'; entity: MovableEntity }
+	| { kind: 'region'; entity: RegionEntity }): string => {
 	const type = {
 		wall: 'pb2Shape.WALL',
 		background: 'pb2Shape.BACKGROUND',
 		water: 'pb2Shape.WATER',
 		movable: 'pb2Shape.MOVABLE',
+		region: 'pb2Shape.REGION',
 	}[kind];
+
+	// Handle visual assets (surface or liquid kind..)
+	const model = kind !== 'water' && 'surfaceUID' in entity ? entity.surfaceUID : null;
+	const waterClass = kind === 'water' ? entity.liquidKindUID : null;
+
+	// Handle region specific properties..
 
 	const code = `
     pb2GameWorld.CreateBoxShape(
@@ -43,8 +47,10 @@ export const serializeBox = (
         y: ${entity.geometry.y}, 
         w: ${entity.geometry.w}, 
         h: ${entity.geometry.h}, 
+
         ${model !== null ? `m: ${model}, ` : ''}
         ${waterClass !== null ? `wc: ${waterClass}, ` : ''}
+
         type: ${type}${kind === 'movable' ? ', hea: 0' : ''}  
     });
     `;
@@ -60,6 +66,7 @@ export const serializeBox = (
 
 		m: model ?? 'null',
 		wc: waterClass ?? 'null',
+
 		type: type,
 		corner: 'pb2Shape.CORNER_NONE',
 
@@ -70,11 +77,15 @@ export const serializeBox = (
 		_locked: '0',
 		_disabled: '0',
 		id: '',
-		...(kind !== 'movable' && kind !== 'background'
+
+		// Add movable / background specific property.. in this case the attached property.
+		...(kind !== 'movable' && kind !== 'background' && kind !== 'region'
 			? {}
 			: {
 					attached_to: 'null',
 				}),
+
+		// Add movable specific properties..
 		...(kind !== 'movable'
 			? {}
 			: {
@@ -83,6 +94,9 @@ export const serializeBox = (
 					forward_damage: 'true',
 					onDeath: 'null',
 				}),
+
+		// Add region specific properties
+		...(kind !== 'region' ? {} : getRegionSpecificProperties(entity.activationClause)),
 	};
 
 	return toPB3String({ code: code, jsonObject: JSON.stringify(editor_object) });

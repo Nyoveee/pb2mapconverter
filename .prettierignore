@@ -19,3 +19,5 @@ src/__tests__/maps/**
 # I want my tab aligned comments.
 src/utils/surface.ts
 src/pb2Map.ts
+
+docs

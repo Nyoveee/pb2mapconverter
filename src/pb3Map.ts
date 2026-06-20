@@ -19,6 +19,7 @@ import type {
 	SkinEntity,
 	AIPresetEntity,
 	PointEntity,
+	RegionEntity,
 } from '#pb2Objects/entity-types.js';
 import { getBackgroundKey, type BackgroundIdentifierStr } from '#pb2Objects/surface.js';
 import { getLiquidKindKey, type LiquidIdentifierStr } from '#pb2Objects/liquid.js';
@@ -55,6 +56,7 @@ export class PB3Map {
 	private waters: WaterEntity[] = [];
 	private movables: MovableEntity[] = [];
 	private characters: CharacterEntity[] = [];
+	private regions: RegionEntity[] = [];
 
 	// Derived PB3 Objects.. (assets, execute method, comments, etc..)
 	private wallSurfaces: Record<number, SurfaceEntity> = {}; // maps every unique PB2 wall material (an id) with a created wall surface.
@@ -103,6 +105,9 @@ export class PB3Map {
 				case 'player':
 				case 'enemy':
 					this.characters.push(...this.parsePB2Character(parsedPB2Objects, pb2ObjectName === 'player'));
+					break;
+				case 'region':
+					this.regions = this.parsePB2Region(parsedPB2Objects);
 					break;
 				default:
 					console.warn(`Encountered unknown / unsupported xml tag of ${pb2ObjectName}`);
@@ -211,6 +216,10 @@ export class PB3Map {
 
 		for (const water of this.waters) {
 			pb3SourceCode += serializeBox({ kind: 'water', entity: water });
+		}
+
+		for (const region of this.regions) {
+			pb3SourceCode += serializeBox({ kind: 'region', entity: region });
 		}
 
 		for (const lamp of this.lamps) {
@@ -388,6 +397,7 @@ export class PB3Map {
 				textureYOffset: Number(pb2Object.$.v ?? 0),
 				drawInFront: Boolean(pb2Object.$.f ?? false),
 				surfaceUID: this.getOrCreateBackgroundSurface(materialIndex, colorMultiplier).uid,
+				attachedMovableUID: undefined,
 			});
 
 			updateWorldBoundary(this.worldBoundary, geometry);
@@ -483,12 +493,32 @@ export class PB3Map {
 				visible: visible,
 				speed: speed,
 				surfaceUID: this.getOrCreateMovableSurface(visible).uid,
+				attachedMovableUID: null,
 			});
 
 			updateWorldBoundary(this.worldBoundary, geometry);
 		}
 
 		return movables;
+	};
+
+	private parsePB2Region = (pb2Objects: ParsedPB2XMLObject[]): RegionEntity[] => {
+		const regions: RegionEntity[] = [];
+
+		for (const pb2Object of pb2Objects) {
+			const geometry = parseGeometry(pb2Object);
+
+			regions.push({
+				geometry: geometry,
+				activationClause: Number(pb2Object.$.use_on ?? 0),
+				triggerToExecuteUID: null,
+				attachedMovableUID: null,
+			});
+
+			updateWorldBoundary(this.worldBoundary, geometry);
+		}
+
+		return regions;
 	};
 
 	private parsePB2Character = (pb2Objects: ParsedPB2XMLObject[], isPlayer: boolean): CharacterEntity[] => {

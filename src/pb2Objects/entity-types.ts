@@ -60,6 +60,7 @@ export interface BackgroundEntity {
 	textureYOffset: number;
 	drawInFront: boolean;
 	surfaceUID: string; // pb3 property
+	attachedMovableUID: string | undefined;
 }
 
 export interface MovableEntity {
@@ -67,11 +68,19 @@ export interface MovableEntity {
 	visible: boolean;
 	speed: number;
 	surfaceUID: string; // pb3 property
+	attachedMovableUID: string | null;
 }
 
 export interface WaterEntity {
 	geometry: Geometry;
 	liquidKindUID: string; // pb3 property
+}
+
+export interface RegionEntity {
+	geometry: Geometry;
+	activationClause: number;
+	triggerToExecuteUID: string | null;
+	attachedMovableUID: string | null;
 }
 
 export interface LampEntity {
