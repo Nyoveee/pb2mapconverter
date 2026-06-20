@@ -1,6 +1,8 @@
 import type { GunEntity } from '#pb2Objects/entity-types.js';
 import { toPB3String } from './serialize.js';
 
+// todo upgrade levels
+
 const DEFAULT_EDITOR_OBJECT = {
     "operation":"create",
     "constructor":"pb2Gun.CreateGun",
@@ -21,8 +23,7 @@ export const serializeGun = (entity: GunEntity): string => {
     { 
         x: ${entity.position.x}, 
         y: ${entity.position.y}, 
-        type: '${entity.model}', 
-        only_allow_for: ${entity.teamUID} 
+        type: '${entity.pb3Model}'${entity.teamUID !== null ? `, only_allow_for: ${entity.teamUID} ` : ""} 
     });
     `;
 
@@ -30,8 +31,8 @@ export const serializeGun = (entity: GunEntity): string => {
         ...DEFAULT_EDITOR_OBJECT,
         x: entity.position.x.toString(),
         y: entity.position.y.toString(),
-        type: entity.model,
-        only_allow_for: entity.teamUID,
+        type: `'${entity.pb3Model}'`,
+        only_allow_for: entity.teamUID ?? 'null',
     };
 
     return toPB3String({ code: code, jsonObject: JSON.stringify(editor_object) });

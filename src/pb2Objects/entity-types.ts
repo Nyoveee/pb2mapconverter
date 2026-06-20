@@ -1,5 +1,5 @@
 import type { Color } from '#utils/color.js';
-import type { Geometry, Position } from '#utils/types.js';
+import type { Geometry, Position, Side } from '#utils/types.js';
 import type { SurfaceInfo } from './surface.js';
 
 // ===============================================
@@ -23,6 +23,24 @@ export interface TeamEntity {
     uid: string;
 	count: number;
     name: string;
+}
+
+export interface SkinEntity {
+	uid: string;
+	count: number;
+	pb2Model: number;
+	pb3Model: number;
+}
+
+export interface AIPresetEntity {
+	uid: string;
+	count: number;
+	// is there anything that should be changed from defaults?
+}
+
+export interface PointEntity {
+	uid: string;
+	position: Position;
 }
 
 // ===============================================
@@ -64,8 +82,24 @@ export interface LampEntity {
 
 export interface GunEntity {
     position: Position;
-    model: string;
+	pb2Model: string;
+	pb3Model: string;
     team: number;
     upgrade: number;
-    teamUID: string; // pb3 property
+    teamUID: string | null; // pb3 property
+}
+
+export interface CharacterEntity {
+	position: Position,
+	velX: number;
+	velY: number;
+	hp: number;
+	hpMax: number;
+	direction: Side;
+	isPlayer: boolean;
+	teamUID: string; // pb3 property
+	skinUID: string; // pb3 property
+	aiPresetUID: string | null; // pb3 property
+	//vehicle: null | "auto" | unknown; // todo
+	//onDeath: null | unknown; // todo
 }
