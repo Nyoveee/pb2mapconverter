@@ -659,16 +659,16 @@ export class PB3Map {
 		for (const pb2Object of pb2Objects) {
 			const geometry = parseGeometry(pb2Object);
 			let activationClause = Number(pb2Object.$.use_on ?? 0);
-			let triggerToExecuteUID = pb2Object.$.use_target ?? null;
-			let attachedMovableUID = pb2Object.$.attach ?? null;
+			let triggerToExecuteUID = null;
+			const attachedMovableUID = null;
 
-			if (attachedMovableUID === '-1') {
-				attachedMovableUID = null;
-			}
+			// if (attachedMovableUID === '-1') {
+			// 	attachedMovableUID = null;
+			// }
 
-			if (triggerToExecuteUID === '-1') {
-				triggerToExecuteUID = null;
-			}
+			// if (triggerToExecuteUID === '-1') {
+			// 	triggerToExecuteUID = null;
+			// }
 
 			// If a PB2 region has a use button, we will create a USE button PB3 entity, inheriting the properties from the original region/
 			// The other region will be preserved as it may be used by other triggers. @todo: make it configurable..
@@ -676,8 +676,8 @@ export class PB3Map {
 				this.useButtons.push({
 					uid: '',
 					position: getCenterPosition(geometry),
-					triggerToExecuteUID: triggerToExecuteUID,
-					attachedMovableUID: attachedMovableUID,
+					triggerToExecuteUID: null,
+					attachedMovableUID: null,
 					serialize() {
 						return serializeUseButton(this);
 					},

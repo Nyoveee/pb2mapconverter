@@ -74,6 +74,10 @@ describe('static object parsing', () => {
 		await verifyParsingOf('walls');
 	});
 
+	test('region parsing verification', async () => {
+		await verifyParsingOf('region');
+	});
+
 	test('characters parsing verification', async () => {
 		await verifyParsingOf('character');
 	});

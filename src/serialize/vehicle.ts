@@ -1,7 +1,7 @@
-import type { VehicleEntity } from '#pb2Objects/entity-types.js';
+import type { PB3Entity } from '#pb2Objects/entity-types.js';
 import { toPB3String } from './serialize.js';
 
-export const serializeVehicle = (vehicle: VehicleEntity): string => {
+export const serializeVehicle = (vehicle: PB3Entity): string => {
 	const code = `
         pb2Entity.CreateEntity({ 
             x: ${vehicle.position.x}, 
