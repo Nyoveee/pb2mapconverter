@@ -25,7 +25,7 @@ import type {
 	ExecuteMethod,
 	Vector,
 	PusherEntity,
-	VehicleEntity,
+	PB3Entity,
 } from '#pb2Objects/entity-types.js';
 import { getBackgroundKey, type BackgroundIdentifierStr } from '#pb2Objects/surface.js';
 import { getLiquidKindKey, type LiquidIdentifierStr } from '#pb2Objects/liquid.js';
@@ -92,7 +92,7 @@ export class PB3Map {
 	private useButtons: UseButtonEntity[] = [];
 	private points: PointEntity[] = [];
 	private triggerGroups: TriggerGroupEntity[] = [];
-	private vehicles: VehicleEntity[] = [];
+	private pb3Entities: PB3Entity[] = [];
 
 	// Metadata
 	private worldBoundary: WorldBoundary = { min: { x: Infinity, y: Infinity }, max: { x: -Infinity, y: -Infinity } };
@@ -140,7 +140,8 @@ export class PB3Map {
 					this.pushers = this.parsePB2Pusher(parsedPB2Objects);
 					break;
 				case 'vehicle':
-					this.vehicles = this.parsePB2Vehicles(parsedPB2Objects);
+				case 'barrel':
+					this.pb3Entities.push(...this.parsePB3Entity(parsedPB2Objects));
 					break;
 				default:
 					console.warn(`Encountered unknown / unsupported xml tag of ${pb2ObjectName}`);
@@ -280,8 +281,8 @@ export class PB3Map {
 			pb3SourceCode += char.serialize();
 		}
 
-		for (const vehicle of this.vehicles) {
-			pb3SourceCode += vehicle.serialize();
+		for (const pb3Entity of this.pb3Entities) {
+			pb3SourceCode += pb3Entity.serialize();
 		}
 
 		// -------------------------------
@@ -704,8 +705,8 @@ export class PB3Map {
 		return regions;
 	};
 
-	private parsePB2Vehicles = (pb2Objects: ParsedPB2XMLObject[]): VehicleEntity[] => {
-		const vehicles: VehicleEntity[] = [];
+	private parsePB3Entity = (pb2Objects: ParsedPB2XMLObject[]): PB3Entity[] => {
+		const vehicles: PB3Entity[] = [];
 
 		for (const pb2Object of pb2Objects) {
 			const model = pb2Object.$.model;
@@ -720,7 +721,7 @@ export class PB3Map {
 			const healthScale = Number(pb2Object.$.hpp ?? 100) / 100;
 
 			vehicles.push({
-				uid: this.getUniqueUID('vehicle'),
+				uid: this.getUniqueUID('entity'),
 				position: { x: Number(pb2Object.$.x ?? 0), y: Number(pb2Object.$.y ?? 0) },
 				direction: Number(pb2Object.$.side) === -1 ? -1 : 1,
 				healthScale,

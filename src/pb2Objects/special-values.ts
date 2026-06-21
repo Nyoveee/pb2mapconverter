@@ -172,8 +172,12 @@ const PB2VehicleModelToPB3Entity = {
 	veh_walker: { type: 'pb2Entity.TYPE_WALKER ', styleId: '1', scale: 1 },
 	veh_crate: { type: 'pb2Entity.TYPE_CRATE ', styleId: '1', scale: 1 },
 	veh_drone: { type: 'pb2Entity.TYPE_CORVETTE ', styleId: 'pb2EntityMoto.STYLE_ID_MOBILE_CS', scale: 0.2 },
-	/* veh_rope: { type: 'pb2Entity.TYPE_MOTO ', styleId: 'pb2EntityMoto.STYLE_ID_MOBILE_CS', scale: 1 }, no equivalent.. */
 	veh_corvette: { type: 'pb2Entity.TYPE_CORVETTE ', styleId: 'pb2EntityMoto.STYLE_ID_MOBILE_CS', scale: 1 },
+	bar_orange: { type: 'pb2Entity.TYPE_BARREL ', styleId: 'pb2EntityBarrel.STYLE_ID_YELLOW', scale: 1 },
+	bar_blue: { type: 'pb2Entity.TYPE_BARREL ', styleId: 'pb2EntityBarrel.STYLE_ID_BLUE', scale: 1 },
+	bar_red: { type: 'pb2Entity.TYPE_BARREL ', styleId: 'pb2EntityBarrel.STYLE_ID_RED', scale: 1 },
+
+	/* veh_rope: { type: 'pb2Entity.TYPE_MOTO ', styleId: 'pb2EntityMoto.STYLE_ID_MOBILE_CS', scale: 1 }, no equivalent.. */
 };
 
 export const getPB3EntityDetails = (model: string | undefined) => {

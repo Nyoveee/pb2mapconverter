@@ -148,7 +148,7 @@ export interface CharacterEntity extends EditorObject {
 	//onDeath: null | unknown;
 }
 
-export interface VehicleEntity extends EditorObject {
+export interface PB3Entity extends EditorObject {
 	position: Position;
 	healthScale: number;
 	scale: number;
