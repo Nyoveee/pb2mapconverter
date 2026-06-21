@@ -22,7 +22,7 @@ const retrieveExpectedParsedMapResult = async (mapName: string) => {
 // eslint-disable-next-line @typescript-eslint/no-unused-vars -- useful function for debugging.
 const writeResult = async (mapName: string, result: string) => {
 	const testMapDirectory = path.join(process.cwd(), 'src', '__tests__', 'expected');
-	const testMap = path.join(testMapDirectory, mapName + '_output.js');
+	const testMap = path.join(testMapDirectory, mapName + '.js');
 
 	await fs.writeFile(testMap, result);
 };
@@ -73,7 +73,10 @@ describe('static object parsing', () => {
 		await verifyParsingOf('lamps');
 	});
 
-	test.todo('pusher parsing verification');
+	test('pusher parsing verification', async () => {
+		await verifyParsingOf('pushers');
+	});
+
 	test.todo('vehicles parsing verification');
 	test.todo('decoration parsing verification');
 	test.todo('engine mark parsing verification');

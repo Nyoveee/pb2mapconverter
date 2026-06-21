@@ -24,6 +24,7 @@ import type {
 	TriggerGroupEntity,
 	ExecuteMethod,
 	Vector,
+	PusherEntity,
 } from '#pb2Objects/entity-types.js';
 import { getBackgroundKey, type BackgroundIdentifierStr } from '#pb2Objects/surface.js';
 import { getLiquidKindKey, type LiquidIdentifierStr } from '#pb2Objects/liquid.js';
@@ -53,11 +54,15 @@ import {
 	PB2GunModelToPB3,
 	PB2GunModelToPB3Gadget,
 	PB2SkinToPB3,
+	PUSHER,
 	teamNames,
 } from '#pb2Objects/special-values.js';
 import { serializePoint } from '#serialize/point.js';
 import { getGrenadeSpawnPointUID, serializeSpawnGrenadesScript } from '#serialize/grenade.js';
 import { serializeUseButton } from '#serialize/useButton.js';
+import { serializeVector } from '#serialize/vector.js';
+import { serializeExecuteMethod } from '#serialize/executeMethod.js';
+import { serializeTriggerGroup } from '#serialize/triggerGroup.js';
 
 export class PB3Map {
 	// ============================================================================================
@@ -70,20 +75,19 @@ export class PB3Map {
 	private movables: MovableEntity[] = [];
 	private characters: CharacterEntity[] = [];
 	private regions: RegionEntity[] = [];
+	private pushers: PusherEntity[] = [];
 
 	// Derived PB3 Objects.. (assets, execute method, comments, etc..)
 	private wallSurfaces: Record<number, SurfaceEntity> = {}; // maps every unique PB2 wall material (an id) with a created wall surface.
 	private backgroundSurfaces: Record<BackgroundIdentifierStr, SurfaceEntity> = {}; // maps every unique PB2 background material + color mult with a created background surface.
 	private liquidKinds: Record<LiquidIdentifierStr, LiquidKindEntity> = {}; // maps every unique PB2 water property with a created liquid kind.
 	private movableSurfaces: Partial<Record<BooleanAsString, SurfaceEntity>> = {}; // maps every unique PB2 door "look" with a movable surface.
-
-	private useButtons: UseButtonEntity[] = [];
-
 	private teams: Record<number, TeamEntity> = {}; // maps every unique PB2 team number property with a created team.
 	private skins: Record<number, SkinEntity> = {};
 	private aiPresets: Record<number, AIPresetEntity> = {};
-	private points: PointEntity[] = [];
 
+	private useButtons: UseButtonEntity[] = [];
+	private points: PointEntity[] = [];
 	private triggerGroups: TriggerGroupEntity[] = [];
 
 	// Metadata
@@ -126,11 +130,10 @@ export class PB3Map {
 					this.characters.push(...this.parsePB2Character(parsedPB2Objects, pb2ObjectName === 'player'));
 					break;
 				case 'region':
-					this.regions.push(...this.parsePB2Region(parsedPB2Objects));
+					this.regions = this.parsePB2Region(parsedPB2Objects);
 					break;
 				case 'pushf':
-					// There's no native pushers in PB3. Pushers can be with a combination of region and subforce execute trigger action.
-					this.regions.push(...this.parsePB2Pusher(parsedPB2Objects));
+					this.pushers = this.parsePB2Pusher(parsedPB2Objects);
 					break;
 				default:
 					console.warn(`Encountered unknown / unsupported xml tag of ${pb2ObjectName}`);
@@ -149,13 +152,18 @@ export class PB3Map {
 
 		// Create all assets related to characters and guns (skins, teams and AI presets).
 		this.createSkinsTeamsAndAIPresets();
+
+		// Create trigger groups that attempt to emulate PB2 pushers via sub push force execute method.
+		this.createPusherTriggerGroups();
 	}
 
 	// Serializes the current PB2 map intp PB3 source code.
 	public serializeToPB3SourceCode = (): string => {
 		let pb3SourceCode = '';
 
-		// global vars declaration
+		// -------------------------------
+		// 1. We declare all UID.. this is the `global vars declaration` section
+		// -------------------------------
 		const globalNames: string[] = [];
 		globalNames.push(...Object.values(this.wallSurfaces).map((s) => s.uid));
 		globalNames.push(...Object.values(this.backgroundSurfaces).map((s) => s.uid));
@@ -165,10 +173,18 @@ export class PB3Map {
 		globalNames.push(...Object.values(this.skins).map((s) => s.uid));
 		globalNames.push(...Object.values(this.aiPresets).map((s) => s.uid));
 		globalNames.push(...this.points.map((s) => s.uid));
+
+		for (const triggerGroup of this.triggerGroups) {
+			globalNames.push(...triggerGroup.children.map((s) => s.uid));
+		}
+
 		if (globalNames.length > 0) {
 			pb3SourceCode += `var ${globalNames.join(', ')};`;
 		}
 
+		// -------------------------------
+		// 2. We append necessary headers (loading module, custom scripts, etc..)
+		// -------------------------------
 		pb3SourceCode += PB3StandardMapHeader;
 
 		// top-left corner
@@ -178,6 +194,10 @@ export class PB3Map {
 		let scriptIndex = 0;
 
 		pb3SourceCode += serializeMapConfigureScript(minX + EDITOR_ICON_WIDTH * scriptIndex++, minY + iconHeightGap.script);
+
+		// -------------------------------
+		// 3. We start serializing the individual game objects..
+		// -------------------------------
 
 		// Order matters.. we first serialize "assets" like objects..
 		for (const [_, surface] of Object.entries(this.wallSurfaces)) {
@@ -210,6 +230,10 @@ export class PB3Map {
 
 		for (const point of this.points) {
 			pb3SourceCode += point.serialize();
+		}
+
+		for (const triggerGroup of this.triggerGroups) {
+			pb3SourceCode += triggerGroup.serialize();
 		}
 
 		// We then serialize object instances..
@@ -248,6 +272,10 @@ export class PB3Map {
 		for (const char of this.characters) {
 			pb3SourceCode += char.serialize();
 		}
+
+		// -------------------------------
+		// 4. We append necessary footers (custom scripts, finalizeWorld, etc..)
+		// -------------------------------
 
 		pb3SourceCode += serializeForceRegenScript(minX + EDITOR_ICON_WIDTH * scriptIndex++, minY + iconHeightGap.script);
 
@@ -665,17 +693,25 @@ export class PB3Map {
 		return regions;
 	};
 
-	private parsePB2Pusher = (pb2Objects: ParsedPB2XMLObject[]): RegionEntity[] => {
-		const pushers: RegionEntity[] = [];
+	private parsePB2Pusher = (pb2Objects: ParsedPB2XMLObject[]): PusherEntity[] => {
+		const pushers: PusherEntity[] = [];
 
 		for (const pb2Object of pb2Objects) {
 			const geometry = parseGeometry(pb2Object);
+			const uid = pb2Object.$.uid ?? this.getUniqueUID('pusher');
 			const pushX = Number(pb2Object.$.tox ?? 0);
 			const pushY = Number(pb2Object.$.toy ?? 0);
-			// const stabilityDamage = Number(pb2Object.$.stab ?? 0);
-			// const damage = Number(pb2Object.$.damage ?? 0);
+			const stabilityDamage = Number(pb2Object.$.stab ?? 0);
+			const damage = Number(pb2Object.$.damage ?? 0);
 
-			this.createPusherTriggerGroup(pushX, pushY, getCenterPosition(geometry));
+			pushers.push({
+				uid: uid,
+				geometry: geometry,
+				dx: pushX,
+				dy: pushY,
+				stabliityDamage: stabilityDamage,
+				damage: damage,
+			});
 
 			updateWorldBoundary(this.worldBoundary, geometry);
 		}
@@ -683,46 +719,62 @@ export class PB3Map {
 		return pushers;
 	};
 
-	private createPusherTriggerGroup = (vectorDx: number, vectorDy: number, position: Position) => {
-		const count = this.triggerGroups.length;
+	private createPusherTriggerGroups = () => {
+		const PUSHER_STRENGTH_MULTIPLIER = 10; // Pushers in PB2 are much stronger compared to PB3.
 
 		// A pusher in PB3 can be simulated with the region sub-step push function.
 		// We require 3 game objects
 		// 1. Trigger group (to call the Execute method)
 		// 2. Execute method (responsible for calling the region sub-step push function)
 		// 3. Vector (argument used to indicate pushing direction)
+		for (const pusher of this.pushers) {
+			const centerPosition = getCenterPosition(pusher.geometry);
 
-		const vector: Vector = {
-			position: { x: position.x + EDITOR_ICON_WIDTH, y: position.y },
-			uid: this.getUniqueUID('vector'),
-			dx: vectorDx,
-			dy: vectorDy,
-			serialize() {
-				return 'stub';
-			},
-		};
+			const vector: Vector = {
+				position: { x: centerPosition.x + EDITOR_ICON_WIDTH, y: centerPosition.y },
+				uid: this.getUniqueUID('vector'),
+				dx: pusher.dx * PUSHER_STRENGTH_MULTIPLIER,
+				dy: pusher.dy * PUSHER_STRENGTH_MULTIPLIER,
+				serialize() {
+					return serializeVector(this);
+				},
+			};
 
-		const executeMethod: ExecuteMethod = {
-			position: { x: position.x, y: position.y },
-			uid: '',
-			functionName: '',
-			arguments: ['rigid_body', vector.uid],
-			serialize() {
-				return 'stub';
-			},
-		};
+			const executeMethod: ExecuteMethod = {
+				position: { x: centerPosition.x, y: centerPosition.y },
+				uid: this.getUniqueUID('execute_method'),
+				functionName: 'ApplyPushForceLogicToBody',
+				arguments: ['rigid_body', vector.uid],
+				serialize() {
+					return serializeExecuteMethod(this);
+				},
+			};
 
-		this.triggerGroups.push({
-			position: { x: position.x - EDITOR_ICON_WIDTH, y: position.y },
-			uid: this.getUniqueUID('group_tool'),
-			children: [vector, executeMethod],
-			arguments: ['rigid_body'],
-			maxCalls: Infinity,
-			count: count,
-			serialize() {
-				return 'stub';
-			},
-		});
+			const triggerGroup = {
+				position: { x: centerPosition.x - EDITOR_ICON_WIDTH, y: centerPosition.y },
+				uid: this.getUniqueUID('group_tool'),
+				children: [vector, executeMethod],
+				arguments: ['rigid_body'],
+				maxCalls: Infinity,
+				serialize() {
+					return serializeTriggerGroup(this);
+				},
+			};
+
+			this.triggerGroups.push(triggerGroup);
+
+			// We then create a region that executes this trigger group when entered..
+			this.regions.push({
+				uid: pusher.uid,
+				geometry: pusher.geometry,
+				activationClause: PUSHER,
+				triggerToExecuteUID: triggerGroup.uid,
+				attachedMovableUID: null,
+				serialize() {
+					return serializeBox({ kind: 'region', entity: this });
+				},
+			});
+		}
 	};
 
 	private parsePB2Character = (pb2Objects: ParsedPB2XMLObject[], isPlayer: boolean): CharacterEntity[] => {

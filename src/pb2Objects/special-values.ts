@@ -158,6 +158,7 @@ const USE_BUTTON_INVISIBLE_NO_SOUND = 15;
 const PROJECTILE_OR_SWORD = 16;
 const ACTOR_ONLY = 17;
 const ACTOR_NOT_ALLIED_TO_PLAYER = 18;
+export const PUSHER = 19; // custom defined..
 
 export const PB2GunModelToPB3Gadget: Record<string, string> = {
 	item_grenade: 'HE', // pb2ArmsAction.ACTION_TYPE_THROW_GRENADE_HE
@@ -176,11 +177,13 @@ export const getRegionSpecificProperties = (region: RegionEntity) => {
 		ALL_SINGLE_PLAYER_HEROES,
 		ACTOR_ONLY,
 		ACTOR_NOT_ALLIED_TO_PLAYER,
+		PUSHER,
 	].includes(region.activationClause);
 
 	// prettier-ignore
 	const react_to_bullets = [
-		PROJECTILE_OR_SWORD
+		PROJECTILE_OR_SWORD,
+		PUSHER
 	].includes(region.activationClause);
 
 	// prettier-ignore
@@ -188,21 +191,41 @@ export const getRegionSpecificProperties = (region: RegionEntity) => {
 		MOVABLE
 	].includes(region.activationClause);
 
+	// prettier-ignore
+	const react_to_grappling_hooks = [
+		PUSHER
+	].includes(region.activationClause);
+
+	// prettier-ignore
+	const react_to_guns = [
+		PUSHER
+	].includes(region.activationClause);
+
+	// prettier-ignore
+	const react_to_grenades = [
+		PUSHER
+	].includes(region.activationClause);
+
+	// prettier-ignore
+	const react_to_shields = [
+		PUSHER
+	].includes(region.activationClause);
+
 	const react_to_entities = [CHARACTER_IN_A_VEHICLE].includes(region.activationClause);
 
 	return {
 		increased_accuracy: 'false',
 		react_to_ragdolls: `${react_to_ragdolls}`,
-		react_to_guns: 'false',
+		react_to_guns: `${react_to_guns}`,
 		react_to_bullets: `${react_to_bullets}`,
-		react_to_grenades: 'false',
-		react_to_grappling_hooks: 'false',
-		react_to_shields: 'false',
+		react_to_grenades: `${react_to_grenades}`,
+		react_to_grappling_hooks: `${react_to_grappling_hooks}`,
+		react_to_shields: `${react_to_shields}`,
 		react_to_entities: `${react_to_entities}`,
 		react_to_exact_movables: `${react_to_exact_movables}`,
 		onEnter: 'null',
 		onLeave: 'null',
-		onSubstep: 'null',
+		onSubstep: `${region.triggerToExecuteUID}`,
 	};
 };
 
