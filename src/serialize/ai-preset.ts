@@ -24,7 +24,7 @@ const DEFAULT_EDITOR_OBJECT = {
 	sequence_behavior: 'pb2AIModule.SEQUENCE_BEHAVIOR_SERIOUS',
 };
 
-export const serializeAIPreset = (entity: AIPresetEntity, x: number, y: number) => {
+export const serializeAIPreset = (entity: AIPresetEntity) => {
 	// better but not good. npcs still see too far
 	// these will probably be changed
 	const hunt_random_known_threats_range = 200;
@@ -50,8 +50,8 @@ export const serializeAIPreset = (entity: AIPresetEntity, x: number, y: number) 
 	const editor_object = {
 		...DEFAULT_EDITOR_OBJECT,
 		id: entity.uid,
-		x: x.toString(),
-		y: y.toString(),
+		x: entity.position.x.toString(),
+		y: entity.position.y.toString(),
 		hunt_random_known_threats_range: hunt_random_known_threats_range.toString(),
 		hear_range: hear_range.toString(),
 	};

@@ -4,7 +4,7 @@
     This is useful in a way to process and handle constraints like asset requirements,
     triggers, etc..
 */
-import type { BooleanAsString, ParsedPB2XMLObject, WorldBoundary, XLMParseOutput } from '#utils/types.js';
+import type { BooleanAsString, ParsedPB2XMLObject, Position, WorldBoundary, XLMParseOutput } from '#utils/types.js';
 import type {
 	SurfaceEntity,
 	LiquidKindEntity,
@@ -21,14 +21,16 @@ import type {
 	PointEntity,
 	RegionEntity,
 	UseButtonEntity,
+	TriggerGroupEntity,
+	ExecuteMethod,
+	Vector,
 } from '#pb2Objects/entity-types.js';
-import { getBackgroundKey, SurfaceType, type BackgroundIdentifierStr } from '#pb2Objects/surface.js';
+import { getBackgroundKey, type BackgroundIdentifierStr } from '#pb2Objects/surface.js';
 import { getLiquidKindKey, type LiquidIdentifierStr } from '#pb2Objects/liquid.js';
 
 import { getCenterPosition, parseGeometry, updateWorldBoundary } from '#utils/math.js';
 import { PB3StandardFooter, PB3StandardMapHeader, serializeForceRegenScript, serializeMapConfigureScript } from '#serialize/serialize.js';
 import { serializeBox } from '#serialize/box.js';
-import { serializeSurface } from '#serialize/surface.js';
 import { serializeLamp } from '#serialize/lamp.js';
 import { serializeGun } from '#serialize/gun.js';
 import { doubleColor, hexToColor, isValidHexCode, whiteColor, type Color } from '#utils/color.js';
@@ -44,6 +46,8 @@ import { serializeSkin } from '#serialize/skin.js';
 import { serializeAIPreset } from '#serialize/ai-preset.js';
 import { serializeCharacter } from '#serialize/character.js';
 import {
+	EDITOR_ICON_WIDTH,
+	iconHeightGap,
 	isRegionAUSEButton,
 	NO_ACTIVATION_METHOD,
 	PB2GunModelToPB3,
@@ -80,14 +84,19 @@ export class PB3Map {
 	private aiPresets: Record<number, AIPresetEntity> = {};
 	private points: PointEntity[] = [];
 
+	private triggerGroups: TriggerGroupEntity[] = [];
+
 	// Metadata
 	private worldBoundary: WorldBoundary = { min: { x: Infinity, y: Infinity }, max: { x: -Infinity, y: -Infinity } };
 	private hasGrenades = false;
-
+	private usedUIDs: Record<string, number> = {};
 	// ============================================================================================
 
 	// Constructs a valid representation of the PB2 map, given an opaque parsed XML object.
 	constructor(xmlFile: XLMParseOutput) {
+		// --------------------------------------------------
+		// 1. We focus on parsing all PB2 objects..
+		// --------------------------------------------------
 		for (const [pb2ObjectName, pb2Objects] of Object.entries(xmlFile.root)) {
 			// @TODO: Validation w/ zod? and more concrete type. (maybe overkill)
 			const parsedPB2Objects = pb2Objects;
@@ -127,6 +136,19 @@ export class PB3Map {
 					console.warn(`Encountered unknown / unsupported xml tag of ${pb2ObjectName}`);
 			}
 		}
+
+		// --------------------------------------------------
+		// 2. We process all parsed PB2 objects, creating the derived PB3 objects if required.
+		// --------------------------------------------------
+
+		// Create all required surface objects.. used by walls, backgrounds and movable.
+		this.createSurfaces();
+
+		// Create all required liquid kinds.. used by water.
+		this.createLiquidKinds();
+
+		// Create all assets related to characters and guns (skins, teams and AI presets).
+		this.createSkinsTeamsAndAIPresets();
 	}
 
 	// Serializes the current PB2 map intp PB3 source code.
@@ -149,135 +171,156 @@ export class PB3Map {
 
 		pb3SourceCode += PB3StandardMapHeader;
 
-		// ---------------------------------------
-		// For PB3 objects like Surfaces and Skins, we lay them in rows (based on type) on the top left
-		// of the world boundary.
-		// ---------------------------------------
-		const iconWidth = 50;
-		const iconHeight = 50;
-
-		const iconHeightGap = {
-			script: -1 * iconHeight,
-			surfaceMovable: -2 * iconHeight,
-			surfaceBg: -3 * iconHeight,
-			surfaceWall: -4 * iconHeight,
-			liquidKind: -5 * iconHeight,
-			team: -6 * iconHeight,
-			skin: -7 * iconHeight,
-			aiPreset: -8 * iconHeight,
-		} as const;
-
 		// top-left corner
 		const minX = this.worldBoundary.min.x;
 		const minY = this.worldBoundary.min.y;
 
 		let scriptIndex = 0;
 
-		pb3SourceCode += serializeMapConfigureScript(minX + iconWidth * scriptIndex++, minY + iconHeightGap.script);
+		pb3SourceCode += serializeMapConfigureScript(minX + EDITOR_ICON_WIDTH * scriptIndex++, minY + iconHeightGap.script);
 
 		// Order matters.. we first serialize "assets" like objects..
 		for (const [_, surface] of Object.entries(this.wallSurfaces)) {
-			const [x, y] = [minX + surface.count * iconWidth, minY + iconHeightGap.surfaceWall];
-			pb3SourceCode += serializeSurface(surface, SurfaceType.Wall, x, y);
+			pb3SourceCode += surface.serialize();
 		}
 
 		for (const [_, surface] of Object.entries(this.backgroundSurfaces)) {
-			const [x, y] = [minX + surface.count * iconWidth, minY + iconHeightGap.surfaceBg];
-			pb3SourceCode += serializeSurface(surface, SurfaceType.Background, x, y);
+			pb3SourceCode += surface.serialize();
 		}
 
 		for (const [_, surface] of Object.entries(this.movableSurfaces)) {
-			const [x, y] = [minX + surface.count * iconWidth, minY + iconHeightGap.surfaceMovable];
-			pb3SourceCode += serializeSurface(surface, SurfaceType.Movable, x, y);
+			pb3SourceCode += surface.serialize();
 		}
 
 		for (const [_, liquidKind] of Object.entries(this.liquidKinds)) {
-			const [x, y] = [minX + liquidKind.count * iconWidth, minY + iconHeightGap.liquidKind];
-			pb3SourceCode += serializeLiquidKind(liquidKind, x, y);
+			pb3SourceCode += liquidKind.serialize();
 		}
 
 		for (const [_, team] of Object.entries(this.teams)) {
-			const [x, y] = [minX + team.count * iconWidth, minY + iconHeightGap.team];
-			pb3SourceCode += serializeTeam(team, x, y);
+			pb3SourceCode += team.serialize();
 		}
 
 		for (const [_, skin] of Object.entries(this.skins)) {
-			const [x, y] = [minX + skin.count * iconWidth, minY + iconHeightGap.skin];
-			pb3SourceCode += serializeSkin(skin, x, y);
+			pb3SourceCode += skin.serialize();
 		}
 
-		for (const [_, ai] of Object.entries(this.aiPresets)) {
-			const [x, y] = [minX + ai.count * iconWidth, minY + iconHeightGap.aiPreset];
-			pb3SourceCode += serializeAIPreset(ai, x, y);
+		for (const [_, aiPreset] of Object.entries(this.aiPresets)) {
+			pb3SourceCode += aiPreset.serialize();
 		}
 
 		for (const point of this.points) {
-			pb3SourceCode += serializePoint(point);
+			pb3SourceCode += point.serialize();
 		}
 
 		// We then serialize object instances..
 		for (const wall of this.walls) {
-			pb3SourceCode += serializeBox({ kind: 'wall', entity: wall });
+			pb3SourceCode += wall.serialize();
 		}
 
 		for (const background of this.backgrounds) {
-			pb3SourceCode += serializeBox({ kind: 'background', entity: background });
+			pb3SourceCode += background.serialize();
 		}
 
 		for (const movable of this.movables) {
-			pb3SourceCode += serializeBox({ kind: 'movable', entity: movable });
+			pb3SourceCode += movable.serialize();
 		}
 
 		for (const water of this.waters) {
-			pb3SourceCode += serializeBox({ kind: 'water', entity: water });
+			pb3SourceCode += water.serialize();
 		}
 
 		for (const region of this.regions) {
-			pb3SourceCode += serializeBox({ kind: 'region', entity: region });
+			pb3SourceCode += region.serialize();
 		}
 
 		for (const useButton of this.useButtons) {
-			pb3SourceCode += serializeUseButton(useButton);
+			pb3SourceCode += useButton.serialize();
 		}
 
 		for (const lamp of this.lamps) {
-			pb3SourceCode += serializeLamp(lamp);
+			pb3SourceCode += lamp.serialize();
 		}
 
 		for (const gun of this.guns) {
-			pb3SourceCode += serializeGun(gun);
+			pb3SourceCode += gun.serialize();
 		}
 
 		for (const char of this.characters) {
-			pb3SourceCode += serializeCharacter(char);
+			pb3SourceCode += char.serialize();
 		}
 
-		pb3SourceCode += serializeForceRegenScript(minX + iconWidth * scriptIndex++, minY + iconHeightGap.script);
+		pb3SourceCode += serializeForceRegenScript(minX + EDITOR_ICON_WIDTH * scriptIndex++, minY + iconHeightGap.script);
 
 		if (this.hasGrenades) {
 			// eslint-disable-next-line no-useless-assignment -- leaving the increment pattern on scriptIndex here for subsequent proceeding code.
-			pb3SourceCode += serializeSpawnGrenadesScript(minX + iconWidth * scriptIndex++, minY + iconHeightGap.script);
+			pb3SourceCode += serializeSpawnGrenadesScript(minX + EDITOR_ICON_WIDTH * scriptIndex++, minY + iconHeightGap.script);
 		}
 
 		pb3SourceCode += PB3StandardFooter;
 		return pb3SourceCode;
 	};
 
+	private createSurfaces = () => {
+		// We don't reuse existing surfaces if possible (hence the naming convention getOrCreate)
+		for (const wall of this.walls) {
+			wall.surfaceUID = this.getOrCreateWallSurface(wall.materialIndex).uid;
+		}
+
+		for (const background of this.backgrounds) {
+			background.surfaceUID = this.getOrCreateBackgroundSurface(background.backgroundMaterialIndex, background.colorMultiplier).uid;
+		}
+
+		for (const movable of this.movables) {
+			movable.surfaceUID = this.getOrCreateMovableSurface(movable.visible).uid;
+		}
+	};
+
+	private createLiquidKinds = () => {
+		for (const water of this.waters) {
+			water.liquidKindUID = this.getOrCreateLiquidKind(water.damage, water.actAsWater).uid;
+		}
+	};
+
+	private createSkinsTeamsAndAIPresets = () => {
+		for (const gun of this.guns) {
+			gun.teamUID = this.getOrCreateTeam(gun.team).uid;
+		}
+
+		for (const character of this.characters) {
+			character.teamUID = this.getOrCreateTeam(character.pb2TeamId).uid;
+			character.skinUID = this.getOrCreateSkin(character.pb2SkinId).uid;
+
+			if (!character.isAIInactive) {
+				character.aiPresetUID = this.getOrCreateAIPreset().uid;
+			}
+		}
+	};
+
 	private getOrCreateWallSurface = (materialIndex: number): SurfaceEntity => {
 		let entity = this.wallSurfaces[materialIndex];
+		const count = Object.keys(this.wallSurfaces).length;
+
 		if (entity === undefined) {
-			entity = createPB2WallSurface(materialIndex, Object.keys(this.wallSurfaces).length);
+			entity = createPB2WallSurface(materialIndex, this.getAppropriatePosition('surfaceWall', count), this.getUniqueUID('wallSurface'));
 			this.wallSurfaces[materialIndex] = entity;
 		}
+
 		return entity;
 	};
 
 	private getOrCreateBackgroundSurface = (materialIndex: number, colorMultiplier: Color): SurfaceEntity => {
 		// We use a combination of material id and color multiplier as a unique key to an associated surface.
 		const key = getBackgroundKey({ materialId: materialIndex, colorMultiplier });
+		const count = Object.keys(this.backgroundSurfaces).length;
+
 		let entity = this.backgroundSurfaces[key];
 		if (entity === undefined) {
-			entity = createPB2BackgroundSurface(materialIndex, Object.keys(this.backgroundSurfaces).length, colorMultiplier);
+			entity = createPB2BackgroundSurface(
+				materialIndex,
+				colorMultiplier,
+				this.getAppropriatePosition('surfaceBg', count),
+				this.getUniqueUID('backgroundSurface'),
+			);
 			this.backgroundSurfaces[key] = entity;
 		}
 		return entity;
@@ -287,16 +330,23 @@ export class PB3Map {
 		// We use a combination of damage and actAsWater as a unique key to an associated liquid.
 		const key = getLiquidKindKey({ damage, actAsWater });
 		let entity = this.liquidKinds[key];
+
 		if (entity === undefined) {
 			const count = Object.keys(this.liquidKinds).length;
+
 			entity = {
-				uid: `liquidKind${count}`,
-				count,
+				position: this.getAppropriatePosition('liquidKind', count),
+				uid: this.getUniqueUID('liquidKind'),
 				damage,
 				actAsWater,
+				serialize() {
+					return serializeLiquidKind(this);
+				},
 			};
+
 			this.liquidKinds[key] = entity;
 		}
+
 		return entity;
 	};
 
@@ -304,7 +354,7 @@ export class PB3Map {
 		const key = visible.toString() as BooleanAsString;
 		let entity = this.movableSurfaces[key];
 		if (entity === undefined) {
-			entity = createPB2MovableSurface_isVisible(visible);
+			entity = createPB2MovableSurface_isVisible(visible, this.worldBoundary);
 			this.movableSurfaces[key] = entity;
 		}
 		return entity;
@@ -316,12 +366,16 @@ export class PB3Map {
 		if (entity === undefined) {
 			const count = Object.keys(this.teams).length;
 			entity = {
-				uid: `team${count}`,
+				position: this.getAppropriatePosition('team', count),
+				uid: this.getUniqueUID('team'),
 				name: teamNames[teamNumber] ?? `Team ${teamNumber}`,
-				count,
+				serialize() {
+					return serializeTeam(this);
+				},
 			};
 			this.teams[teamNumber] = entity;
 		}
+
 		return entity;
 	};
 
@@ -333,10 +387,13 @@ export class PB3Map {
 		if (entity === undefined) {
 			const count = Object.keys(this.skins).length;
 			entity = {
-				uid: `skin${count}`,
-				count,
+				position: this.getAppropriatePosition('skin', count),
+				uid: this.getUniqueUID('skin'),
 				pb2Model: characterSkinIndex,
 				pb3Model,
+				serialize() {
+					return serializeSkin(this);
+				},
 			};
 			this.skins[pb3Model] = entity;
 		}
@@ -351,7 +408,13 @@ export class PB3Map {
 
 		if (entity === undefined) {
 			const count = Object.keys(this.aiPresets).length;
-			entity = { uid: `aiPreset${count}`, count };
+			entity = {
+				position: this.getAppropriatePosition('aiPreset', count),
+				uid: this.getUniqueUID('aiPreset'),
+				serialize() {
+					return serializeAIPreset(this);
+				},
+			};
 			this.aiPresets[key] = entity;
 		}
 		return entity;
@@ -370,7 +433,10 @@ export class PB3Map {
 				uid: '',
 				geometry: geometry,
 				materialIndex: materialIndex,
-				surfaceUID: this.getOrCreateWallSurface(materialIndex).uid,
+				surfaceUID: 'null',
+				serialize() {
+					return serializeBox({ kind: 'wall', entity: this });
+				},
 			});
 
 			updateWorldBoundary(this.worldBoundary, geometry);
@@ -416,8 +482,12 @@ export class PB3Map {
 				textureXOffset: Number(pb2Object.$.u ?? 0),
 				textureYOffset: Number(pb2Object.$.v ?? 0),
 				drawInFront: Boolean(pb2Object.$.f ?? false),
-				surfaceUID: this.getOrCreateBackgroundSurface(materialIndex, colorMultiplier).uid,
+				surfaceUID: 'null',
 				attachedMovableUID: undefined,
+				colorMultiplier: colorMultiplier,
+				serialize() {
+					return serializeBox({ kind: 'background', entity: this });
+				},
 			});
 
 			updateWorldBoundary(this.worldBoundary, geometry);
@@ -435,6 +505,9 @@ export class PB3Map {
 			},
 			power: Number(props.power ?? 0),
 			hasFlare: ['true', '1'].includes(props.flare ?? 'false'),
+			serialize() {
+				return serializeLamp(this);
+			},
 		}));
 		lamps.forEach(({ position }) => updateWorldBoundary(this.worldBoundary, position));
 		return lamps;
@@ -460,6 +533,9 @@ export class PB3Map {
 				this.points.push({
 					uid: getGrenadeSpawnPointUID(grenadeCount++, PB2GunModelToPB3Gadget[pb2Model] ?? 'null'),
 					position,
+					serialize() {
+						return serializePoint(this);
+					},
 				});
 				this.hasGrenades = true;
 				continue;
@@ -476,6 +552,9 @@ export class PB3Map {
 				team: teamNummber,
 				upgrade: Number(props.upg ?? 0),
 				teamUID: isAnyTeam ? null : this.getOrCreateTeam(teamNummber).uid,
+				serialize() {
+					return serializeGun(this);
+				},
 			} satisfies GunEntity);
 		}
 
@@ -494,7 +573,12 @@ export class PB3Map {
 			waters.push({
 				uid: '',
 				geometry: geometry,
-				liquidKindUID: this.getOrCreateLiquidKind(damage, actAsWater).uid,
+				damage: damage,
+				actAsWater: actAsWater,
+				liquidKindUID: 'null',
+				serialize() {
+					return serializeBox({ kind: 'water', entity: this });
+				},
 			});
 
 			updateWorldBoundary(this.worldBoundary, geometry);
@@ -516,8 +600,11 @@ export class PB3Map {
 				geometry: geometry,
 				visible: visible,
 				speed: speed,
-				surfaceUID: this.getOrCreateMovableSurface(visible).uid,
+				surfaceUID: 'null',
 				attachedMovableUID: null,
+				serialize() {
+					return serializeBox({ kind: 'movable', entity: this });
+				},
 			});
 
 			updateWorldBoundary(this.worldBoundary, geometry);
@@ -551,6 +638,9 @@ export class PB3Map {
 					position: getCenterPosition(geometry),
 					triggerToExecuteUID: triggerToExecuteUID,
 					attachedMovableUID: attachedMovableUID,
+					serialize() {
+						return serializeUseButton(this);
+					},
 				});
 
 				// We strip away the trigger properties from the original region..
@@ -564,6 +654,9 @@ export class PB3Map {
 				activationClause: activationClause,
 				triggerToExecuteUID: triggerToExecuteUID,
 				attachedMovableUID: attachedMovableUID,
+				serialize() {
+					return serializeBox({ kind: 'region', entity: this });
+				},
 			});
 
 			updateWorldBoundary(this.worldBoundary, geometry);
@@ -577,15 +670,59 @@ export class PB3Map {
 
 		for (const pb2Object of pb2Objects) {
 			const geometry = parseGeometry(pb2Object);
-			// const pushX = Number(pb2Object.$.tox ?? 0);
-			// const pushY = Number(pb2Object.$.toy ?? 0);
+			const pushX = Number(pb2Object.$.tox ?? 0);
+			const pushY = Number(pb2Object.$.toy ?? 0);
 			// const stabilityDamage = Number(pb2Object.$.stab ?? 0);
 			// const damage = Number(pb2Object.$.damage ?? 0);
+
+			this.createPusherTriggerGroup(pushX, pushY, getCenterPosition(geometry));
 
 			updateWorldBoundary(this.worldBoundary, geometry);
 		}
 
 		return pushers;
+	};
+
+	private createPusherTriggerGroup = (vectorDx: number, vectorDy: number, position: Position) => {
+		const count = this.triggerGroups.length;
+
+		// A pusher in PB3 can be simulated with the region sub-step push function.
+		// We require 3 game objects
+		// 1. Trigger group (to call the Execute method)
+		// 2. Execute method (responsible for calling the region sub-step push function)
+		// 3. Vector (argument used to indicate pushing direction)
+
+		const vector: Vector = {
+			position: { x: position.x + EDITOR_ICON_WIDTH, y: position.y },
+			uid: this.getUniqueUID('vector'),
+			dx: vectorDx,
+			dy: vectorDy,
+			serialize() {
+				return 'stub';
+			},
+		};
+
+		const executeMethod: ExecuteMethod = {
+			position: { x: position.x, y: position.y },
+			uid: '',
+			functionName: '',
+			arguments: ['rigid_body', vector.uid],
+			serialize() {
+				return 'stub';
+			},
+		};
+
+		this.triggerGroups.push({
+			position: { x: position.x - EDITOR_ICON_WIDTH, y: position.y },
+			uid: this.getUniqueUID('group_tool'),
+			children: [vector, executeMethod],
+			arguments: ['rigid_body'],
+			maxCalls: Infinity,
+			count: count,
+			serialize() {
+				return 'stub';
+			},
+		});
 	};
 
 	private parsePB2Character = (pb2Objects: ParsedPB2XMLObject[], isPlayer: boolean): CharacterEntity[] => {
@@ -603,12 +740,37 @@ export class PB3Map {
 				hpMax: Number(props.hmax ?? 130),
 				direction: Number(props.side) === -1 ? -1 : 1,
 				isPlayer: isPlayer,
-				teamUID: this.getOrCreateTeam(Number(props.team ?? -1)).uid,
-				skinUID: this.getOrCreateSkin(Number(props.char ?? 1)).uid,
-				aiPresetUID: noBehaviour ? null : this.getOrCreateAIPreset().uid,
+				pb2SkinId: Number(props.char ?? 1),
+				pb2TeamId: Number(props.team ?? -1),
+				isAIInactive: noBehaviour,
+				teamUID: 'null',
+				skinUID: 'null',
+				aiPresetUID: null,
+				serialize() {
+					return serializeCharacter(this);
+				},
 			} satisfies CharacterEntity;
 		});
 		entities.forEach(({ position }) => updateWorldBoundary(this.worldBoundary, position));
 		return entities;
+	};
+
+	private getUniqueUID = (name: string): string => {
+		let count = this.usedUIDs[name];
+
+		if (count === undefined) {
+			this.usedUIDs[name] = 0;
+			return name;
+		}
+
+		this.usedUIDs[name] = ++count;
+		return `${name}_${count}`;
+	};
+
+	private getAppropriatePosition = (name: keyof typeof iconHeightGap, count: number): Position => {
+		return {
+			x: this.worldBoundary.min.x + count * EDITOR_ICON_WIDTH,
+			y: this.worldBoundary.min.y + iconHeightGap[name],
+		};
 	};
 }

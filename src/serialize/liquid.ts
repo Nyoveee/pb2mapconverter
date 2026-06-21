@@ -4,7 +4,7 @@ import { toPB3String } from './serialize.js';
 const acidColor = '0x66ff00';
 const waterColor = '0x003344';
 
-export const serializeLiquidKind = (liquidKind: LiquidKindEntity, x: number, y: number) => {
+export const serializeLiquidKind = (liquidKind: LiquidKindEntity) => {
 	const opacity = liquidKind.actAsWater ? 0.6 : 0;
 
 	const code = `
@@ -42,8 +42,8 @@ export const serializeLiquidKind = (liquidKind: LiquidKindEntity, x: number, y: 
 		type: liquidKind.damage > 0 ? 'pb2WaterClass.TYPE_TOXIC' : 'pb2WaterClass.TYPE_WATER',
 		damage_scale: `${liquidKind.damage}`,
 		fire_color: 'new pb2HighRangeColor( 0x723f26 )',
-		x: `${x}`,
-		y: `${y}`,
+		x: `${liquidKind.position.x}`,
+		y: `${liquidKind.position.y}`,
 		_visible: '1',
 		_locked: '0',
 		_disabled: '0',

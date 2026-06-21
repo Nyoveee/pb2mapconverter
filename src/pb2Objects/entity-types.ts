@@ -5,36 +5,36 @@ import type { SurfaceInfo } from './surface.js';
 // The base class which rules them all..
 interface EditorObject {
 	uid: string;
+	serialize(coordinateOffset?: { minX: number; minY: number }): string;
 }
 
 // ===============================================
 // PB3 Objects
 // ===============================================
 export interface SurfaceEntity extends SurfaceInfo, EditorObject {
-	count: number; // useful data to generate other data like position.
+	position: Position;
 	color: Color; // color multiplier (walls dont have color multiplier, so it would be 255, 255, 255).
 	visible: boolean; // some movables are not visible.
 }
 export interface LiquidKindEntity extends EditorObject {
-	count: number;
+	position: Position;
 	damage: number;
 	actAsWater: boolean;
 }
 
 export interface TeamEntity extends EditorObject {
-	count: number;
+	position: Position;
 	name: string;
 }
 
 export interface SkinEntity extends EditorObject {
-	count: number;
+	position: Position;
 	pb2Model: number;
 	pb3Model: number;
 }
 
 export interface AIPresetEntity extends EditorObject {
-	count: number;
-	// is there anything that should be changed from defaults?
+	position: Position;
 }
 
 export interface PointEntity extends EditorObject {
@@ -45,6 +45,26 @@ export interface UseButtonEntity extends EditorObject {
 	position: Position;
 	triggerToExecuteUID: string | null;
 	attachedMovableUID: string | null;
+}
+
+export interface TriggerGroupEntity extends EditorObject {
+	position: Position;
+	children: EditorObject[];
+	arguments: string[];
+	maxCalls: number;
+	count: number;
+}
+
+export interface Vector extends EditorObject {
+	position: Position;
+	dx: number;
+	dy: number;
+}
+
+export interface ExecuteMethod extends EditorObject {
+	position: Position;
+	functionName: string;
+	arguments: string[];
 }
 
 // ===============================================
@@ -65,6 +85,7 @@ export interface BackgroundEntity extends EditorObject {
 	drawInFront: boolean;
 	surfaceUID: string; // pb3 property
 	attachedMovableUID: string | undefined;
+	colorMultiplier: Color;
 }
 
 export interface MovableEntity extends EditorObject {
@@ -77,6 +98,8 @@ export interface MovableEntity extends EditorObject {
 
 export interface WaterEntity extends EditorObject {
 	geometry: Geometry;
+	damage: number;
+	actAsWater: boolean;
 	liquidKindUID: string; // pb3 property
 }
 
@@ -110,9 +133,30 @@ export interface CharacterEntity extends EditorObject {
 	hpMax: number;
 	direction: Side;
 	isPlayer: boolean;
-	teamUID: string; // pb3 property
-	skinUID: string; // pb3 property
-	aiPresetUID: string | null; // pb3 property
-	//vehicle: null | "auto" | unknown; // todo
-	//onDeath: null | unknown; // todo
+
+	// pb2 properties..
+	pb2SkinId: number;
+	pb2TeamId: number;
+	isAIInactive: boolean;
+
+	// pb3 properties..
+	teamUID: string;
+	skinUID: string;
+	aiPresetUID: string | null;
+
+	// @todo..
+	//vehicle: null | "auto" | unknown;
+	//onDeath: null | unknown;
+}
+
+// ===============================================
+// PB2 Objects (will be processed into the equivalent PB3 objects)
+// ===============================================
+export interface PusherEntity {
+	uid: string;
+	geometry: Geometry;
+	dx: number;
+	dy: number;
+	stabliityDamage: number;
+	damage: number;
 }

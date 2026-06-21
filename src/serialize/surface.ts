@@ -4,7 +4,7 @@ import { SurfaceType, type SurfaceT } from '#pb2Objects/surface.js';
 import { blackColor, colorToPB2Hex, multiplyColor, pb2BlueColor, pb2GreenColor, pb2RedColor, type Color } from '#utils/color.js';
 import { toPB3String } from './serialize.js';
 
-export const serializeSurface = (surface: SurfaceEntity, surfaceType: SurfaceT, x: number, y: number) => {
+export const serializeSurface = (surface: SurfaceEntity, surfaceType: SurfaceT) => {
 	// Different types of surface (wall, background and movable) have different parameters.
 	// We calculate the appropriate parameter here.
 
@@ -39,18 +39,10 @@ export const serializeSurface = (surface: SurfaceEntity, surfaceType: SurfaceT, 
 	// Both movables and walls needs to set parameter to be true. (according to PB3 that is)
 	const is_for_wall = surfaceType === SurfaceType.Wall || surfaceType === SurfaceType.Movable;
 
-	return _serializeSurface(surface, toGenerateTerrain, colorMultiplier, is_for_wall, surfaceTerrain, x, y);
+	return _serializeSurface(surface, toGenerateTerrain, colorMultiplier, is_for_wall, surfaceTerrain);
 };
 
-const _serializeSurface = (
-	surface: SurfaceEntity,
-	toGenerateTerrain: boolean,
-	colorMultiplier: Color,
-	is_wall: boolean,
-	surfaceTerrain: string,
-	posX: number,
-	posY: number,
-) => {
+const _serializeSurface = (surface: SurfaceEntity, toGenerateTerrain: boolean, colorMultiplier: Color, is_wall: boolean, surfaceTerrain: string) => {
 	const color = `new pb2HighRangeColor( ${colorToPB2Hex(colorMultiplier)} )`;
 
 	// for avoiding ditto mismatch
@@ -132,8 +124,8 @@ const _serializeSurface = (
 		slice_opacity: '1',
 		slice_scale: '1',
 		impact_scale: '1',
-		x: `${posX}`,
-		y: `${posY}`,
+		x: `${surface.position.x}`,
+		y: `${surface.position.y}`,
 		_visible: '1',
 		_locked: '0',
 		_disabled: '0',

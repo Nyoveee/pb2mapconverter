@@ -22,7 +22,7 @@ const DEFAULT_EDITOR_OBJECT = {
 	_disabled: '0',
 };
 
-export const serializeTeam = (team: TeamEntity, x: number, y: number) => {
+export const serializeTeam = (team: TeamEntity) => {
 	const teammatesCollide = team.name !== 'Alpha';
 
 	const code = `
@@ -47,8 +47,8 @@ export const serializeTeam = (team: TeamEntity, x: number, y: number) => {
 		title: `'${team.name}'`,
 		friendly_fire: 'false',
 		teammates_collide: teammatesCollide.toString(),
-		x: x.toString(),
-		y: y.toString(),
+		x: team.position.x.toString(),
+		y: team.position.y.toString(),
 	};
 
 	return toPB3String({ code: code, jsonObject: JSON.stringify(editor_object) });

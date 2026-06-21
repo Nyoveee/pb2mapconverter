@@ -217,3 +217,21 @@ export const isRegionAUSEButton = (activationClause: number) => {
 		USE_BUTTON_INVISIBLE_NO_SOUND,
 	].includes(activationClause);
 };
+
+// ---------------------------------------
+// For PB3 objects like Surfaces and Skins, we lay them in rows (based on type) on the top left
+// of the world boundary.
+// ---------------------------------------
+export const EDITOR_ICON_WIDTH = 50;
+export const EDITOR_ICON_HEIGHT = 50;
+
+export const iconHeightGap = {
+	script: -1 * EDITOR_ICON_HEIGHT,
+	surfaceMovable: -2 * EDITOR_ICON_HEIGHT,
+	surfaceBg: -3 * EDITOR_ICON_HEIGHT,
+	surfaceWall: -4 * EDITOR_ICON_HEIGHT,
+	liquidKind: -5 * EDITOR_ICON_HEIGHT,
+	team: -6 * EDITOR_ICON_HEIGHT,
+	skin: -7 * EDITOR_ICON_HEIGHT,
+	aiPreset: -8 * EDITOR_ICON_HEIGHT,
+} as const;

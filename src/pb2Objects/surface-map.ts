@@ -2,9 +2,12 @@
 // Mapping PB2's property to PB3..
 // ===============================================
 
+import { serializeSurface } from '#serialize/surface.js';
 import { blackColor, whiteColor, type Color } from '#utils/color.js';
+import type { Position, WorldBoundary } from '#utils/types.js';
 import type { SurfaceEntity } from './entity-types.js';
-import type { SurfaceInfo } from './surface.js';
+import { EDITOR_ICON_WIDTH, iconHeightGap } from './special-values.js';
+import { SurfaceType, type SurfaceInfo } from './surface.js';
 
 const pb2WallMaterialToSurfaceInfo: Record<number, SurfaceInfo> = {
 	0: { surfaceName: 'pb2platform_texture', surfaceType: 'pb2SurfaceType.TYPE_PB2PLATFORM_WALL', surfaceTerrain: 'Ground' }, // Concrete
@@ -53,45 +56,57 @@ const pb2BackgroundMaterialToSurfaceInfo: Record<number, SurfaceInfo> = {
 
 export const pb2ShadowBackgroundMaterial = -1;
 
-export const createPB2WallSurface = (materialIndex: number, count: number): SurfaceEntity => {
+export const createPB2WallSurface = (materialIndex: number, position: Position, uid: string): SurfaceEntity => {
 	// eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- index 0 should always contain a basic material, this is a hardcoded map.
 	const wallSurfaceInfo = pb2WallMaterialToSurfaceInfo[materialIndex] ?? pb2WallMaterialToSurfaceInfo[0]!;
 
 	return {
 		...wallSurfaceInfo,
-		uid: `wallSurface${count}`,
-		count: count,
+		position: position,
+		uid: uid,
 		color: whiteColor,
 		visible: true,
+		serialize() {
+			return serializeSurface(this, SurfaceType.Wall);
+		},
 	};
 };
 
-export const createPB2BackgroundSurface = (materialIndex: number, count: number, color: Color): SurfaceEntity => {
+export const createPB2BackgroundSurface = (materialIndex: number, color: Color, position: Position, uid: string): SurfaceEntity => {
 	// eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- index 0 should always contain a basic material, this is a hardcoded map.
 	const backgroundSurfaceInfo = pb2BackgroundMaterialToSurfaceInfo[materialIndex] ?? pb2BackgroundMaterialToSurfaceInfo[0]!;
 
 	return {
 		...backgroundSurfaceInfo,
-		uid: `backgroundSurface${count}`,
-		count: count,
+		position: position,
+		uid: uid,
 		color: color,
 		visible: true,
+		serialize() {
+			return serializeSurface(this, SurfaceType.Background);
+		},
 	};
 };
 
-export const createPB2MovableSurface_isVisible = (visible: boolean): SurfaceEntity => {
+export const createPB2MovableSurface_isVisible = (visible: boolean, worldBoundary: WorldBoundary): SurfaceEntity => {
 	const visibleMovableSurfaceUID = `visibleMovableSurface`;
 	const invisibleMovableSurfaceUID = `invisibleMovableSurface`;
 	const BLACK_WALL_INDEX = -1;
+	const count = visible ? 0 : 1;
 
 	// eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- BLACK WALL INDEX should point to a valid wall material, this is a hardcoded map.
 	const backgroundSurfaceInfo = pb2WallMaterialToSurfaceInfo[BLACK_WALL_INDEX]!;
 
+	const [x, y] = [worldBoundary.min.x + count * EDITOR_ICON_WIDTH, worldBoundary.min.y + iconHeightGap.surfaceMovable];
+
 	return {
 		...backgroundSurfaceInfo,
+		position: { x: x, y: y },
 		uid: visible ? visibleMovableSurfaceUID : invisibleMovableSurfaceUID,
-		count: visible ? 0 : 1,
 		color: blackColor,
 		visible: visible,
+		serialize() {
+			return serializeSurface(this, SurfaceType.Movable);
+		},
 	};
 };

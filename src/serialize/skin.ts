@@ -16,15 +16,15 @@ const DEFAULT_EDITOR_OBJECT = {
 	_disabled: '0',
 };
 
-export const serializeSkin = (entity: SkinEntity, x: number, y: number) => {
+export const serializeSkin = (entity: SkinEntity) => {
 	const code = `${entity.uid} = pb2SkinEditor.SpawnDefaultSkin( ${entity.pb3Model} );`;
 
 	const editor_object = {
 		...DEFAULT_EDITOR_OBJECT,
 		id: entity.uid,
 		frame: entity.pb3Model.toString(),
-		x: x.toString(),
-		y: y.toString(),
+		x: entity.position.x.toString(),
+		y: entity.position.y.toString(),
 	};
 
 	return toPB3String({ code: code, jsonObject: JSON.stringify(editor_object) });
