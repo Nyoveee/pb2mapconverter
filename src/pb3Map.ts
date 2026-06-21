@@ -25,6 +25,7 @@ import type {
 	ExecuteMethod,
 	Vector,
 	PusherEntity,
+	VehicleEntity,
 } from '#pb2Objects/entity-types.js';
 import { getBackgroundKey, type BackgroundIdentifierStr } from '#pb2Objects/surface.js';
 import { getLiquidKindKey, type LiquidIdentifierStr } from '#pb2Objects/liquid.js';
@@ -48,6 +49,7 @@ import { serializeAIPreset } from '#serialize/ai-preset.js';
 import { serializeCharacter } from '#serialize/character.js';
 import {
 	EDITOR_ICON_WIDTH,
+	getPB3EntityDetails,
 	iconHeightGap,
 	isRegionAUSEButton,
 	NO_ACTIVATION_METHOD,
@@ -63,6 +65,7 @@ import { serializeUseButton } from '#serialize/useButton.js';
 import { serializeVector } from '#serialize/vector.js';
 import { serializeExecuteMethod } from '#serialize/executeMethod.js';
 import { serializeTriggerGroup } from '#serialize/triggerGroup.js';
+import { serializeVehicle } from '#serialize/vehicle.js';
 
 export class PB3Map {
 	// ============================================================================================
@@ -89,6 +92,7 @@ export class PB3Map {
 	private useButtons: UseButtonEntity[] = [];
 	private points: PointEntity[] = [];
 	private triggerGroups: TriggerGroupEntity[] = [];
+	private vehicles: VehicleEntity[] = [];
 
 	// Metadata
 	private worldBoundary: WorldBoundary = { min: { x: Infinity, y: Infinity }, max: { x: -Infinity, y: -Infinity } };
@@ -134,6 +138,9 @@ export class PB3Map {
 					break;
 				case 'pushf':
 					this.pushers = this.parsePB2Pusher(parsedPB2Objects);
+					break;
+				case 'vehicle':
+					this.vehicles = this.parsePB2Vehicles(parsedPB2Objects);
 					break;
 				default:
 					console.warn(`Encountered unknown / unsupported xml tag of ${pb2ObjectName}`);
@@ -271,6 +278,10 @@ export class PB3Map {
 
 		for (const char of this.characters) {
 			pb3SourceCode += char.serialize();
+		}
+
+		for (const vehicle of this.vehicles) {
+			pb3SourceCode += vehicle.serialize();
 		}
 
 		// -------------------------------
@@ -691,6 +702,36 @@ export class PB3Map {
 		}
 
 		return regions;
+	};
+
+	private parsePB2Vehicles = (pb2Objects: ParsedPB2XMLObject[]): VehicleEntity[] => {
+		const vehicles: VehicleEntity[] = [];
+
+		for (const pb2Object of pb2Objects) {
+			const model = pb2Object.$.model;
+
+			const entityProperties = getPB3EntityDetails(model);
+
+			if (entityProperties === undefined) {
+				continue;
+			}
+
+			// PB2 store health in percentages.
+			const healthScale = Number(pb2Object.$.hpp ?? 100) / 100;
+
+			vehicles.push({
+				uid: this.getUniqueUID('vehicle'),
+				position: { x: Number(pb2Object.$.x ?? 0), y: Number(pb2Object.$.y ?? 0) },
+				direction: Number(pb2Object.$.side) === -1 ? -1 : 1,
+				healthScale,
+				...entityProperties,
+				serialize() {
+					return serializeVehicle(this);
+				},
+			});
+		}
+
+		return vehicles;
 	};
 
 	private parsePB2Pusher = (pb2Objects: ParsedPB2XMLObject[]): PusherEntity[] => {

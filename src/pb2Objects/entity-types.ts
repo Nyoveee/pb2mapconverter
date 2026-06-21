@@ -148,6 +148,15 @@ export interface CharacterEntity extends EditorObject {
 	//onDeath: null | unknown;
 }
 
+export interface VehicleEntity extends EditorObject {
+	position: Position;
+	healthScale: number;
+	scale: number;
+	direction: Side;
+	type: string;
+	styleId: string;
+}
+
 // ===============================================
 // PB2 Objects (will be processed into the equivalent PB3 objects)
 // ===============================================

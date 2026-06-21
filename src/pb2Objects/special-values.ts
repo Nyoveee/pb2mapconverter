@@ -167,6 +167,32 @@ export const PB2GunModelToPB3Gadget: Record<string, string> = {
 	gun_sp_sh: 'SHIELD', // pb2ArmsAction.ACTION_TYPE_THROW_GRENADE_SHIELD
 };
 
+const PB2VehicleModelToPB3Entity = {
+	veh_jeep: { type: 'pb2Entity.TYPE_MOTO ', styleId: 'pb2EntityMoto.STYLE_ID_MOBILE_CS', scale: 1 },
+	veh_walker: { type: 'pb2Entity.TYPE_WALKER ', styleId: '1', scale: 1 },
+	veh_crate: { type: 'pb2Entity.TYPE_CRATE ', styleId: '1', scale: 1 },
+	veh_drone: { type: 'pb2Entity.TYPE_CORVETTE ', styleId: 'pb2EntityMoto.STYLE_ID_MOBILE_CS', scale: 0.2 },
+	/* veh_rope: { type: 'pb2Entity.TYPE_MOTO ', styleId: 'pb2EntityMoto.STYLE_ID_MOBILE_CS', scale: 1 }, no equivalent.. */
+	veh_corvette: { type: 'pb2Entity.TYPE_CORVETTE ', styleId: 'pb2EntityMoto.STYLE_ID_MOBILE_CS', scale: 1 },
+};
+
+export const getPB3EntityDetails = (model: string | undefined) => {
+	if (model === undefined) {
+		return undefined;
+	}
+
+	// Type guard because typescript can't tell that it is a valid key.
+	function isValidKey(key: string): key is keyof typeof PB2VehicleModelToPB3Entity {
+		return key in PB2VehicleModelToPB3Entity;
+	}
+
+	if (!isValidKey(model)) {
+		return undefined;
+	}
+
+	return PB2VehicleModelToPB3Entity[model];
+};
+
 export const getRegionSpecificProperties = (region: RegionEntity) => {
 	const react_to_ragdolls = [
 		CHARACTER,
