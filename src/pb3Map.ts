@@ -22,13 +22,13 @@ import type {
 	RegionEntity,
 	UseButtonEntity,
 } from '#pb2Objects/entity-types.js';
-import { getBackgroundKey, type BackgroundIdentifierStr } from '#pb2Objects/surface.js';
+import { getBackgroundKey, SurfaceType, type BackgroundIdentifierStr } from '#pb2Objects/surface.js';
 import { getLiquidKindKey, type LiquidIdentifierStr } from '#pb2Objects/liquid.js';
 
 import { getCenterPosition, parseGeometry, updateWorldBoundary } from '#utils/math.js';
 import { PB3StandardFooter, PB3StandardMapHeader, serializeForceRegenScript, serializeMapConfigureScript } from '#serialize/serialize.js';
 import { serializeBox } from '#serialize/box.js';
-import { serializeSurface, SurfaceType } from '#serialize/surface.js';
+import { serializeSurface } from '#serialize/surface.js';
 import { serializeLamp } from '#serialize/lamp.js';
 import { serializeGun } from '#serialize/gun.js';
 import { doubleColor, hexToColor, isValidHexCode, whiteColor, type Color } from '#utils/color.js';
@@ -117,7 +117,11 @@ export class PB3Map {
 					this.characters.push(...this.parsePB2Character(parsedPB2Objects, pb2ObjectName === 'player'));
 					break;
 				case 'region':
-					this.regions = this.parsePB2Region(parsedPB2Objects);
+					this.regions.push(...this.parsePB2Region(parsedPB2Objects));
+					break;
+				case 'pushf':
+					// There's no native pushers in PB3. Pushers can be with a combination of region and subforce execute trigger action.
+					this.regions.push(...this.parsePB2Pusher(parsedPB2Objects));
 					break;
 				default:
 					console.warn(`Encountered unknown / unsupported xml tag of ${pb2ObjectName}`);
@@ -363,6 +367,7 @@ export class PB3Map {
 			const materialIndex = Number(pb2Object.$.m ?? 0);
 
 			walls.push({
+				uid: '',
 				geometry: geometry,
 				materialIndex: materialIndex,
 				surfaceUID: this.getOrCreateWallSurface(materialIndex).uid,
@@ -405,6 +410,7 @@ export class PB3Map {
 			}
 
 			backgrounds.push({
+				uid: '',
 				geometry: geometry,
 				backgroundMaterialIndex: materialIndex,
 				textureXOffset: Number(pb2Object.$.u ?? 0),
@@ -422,6 +428,7 @@ export class PB3Map {
 
 	private parsePB2Lamp = (pb2Objects: ParsedPB2XMLObject[]): LampEntity[] => {
 		const lamps: LampEntity[] = pb2Objects.map(({ $: props }) => ({
+			uid: '',
 			position: {
 				x: Number(props.x ?? 0),
 				y: Number(props.y ?? 0),
@@ -435,7 +442,7 @@ export class PB3Map {
 
 	private parsePB2Gun = (pb2Objects: ParsedPB2XMLObject[]): GunEntity[] => {
 		const guns: GunEntity[] = [];
-		const grenadeModels = ['item_grenade', 'item_port', 'item_shield'];
+		const grenadeModels = Object.keys(PB2GunModelToPB3Gadget);
 		let grenadeCount = 0;
 
 		for (const { $: props } of pb2Objects) {
@@ -458,10 +465,11 @@ export class PB3Map {
 				continue;
 			}
 
-			const pb3Model = PB2GunModelToPB3[pb2Model] ?? null;
-			if (pb3Model === null) continue; // skip nonexistent models
+			let pb3Model = PB2GunModelToPB3[pb2Model] ?? null;
+			pb3Model ??= 'gun_rifle'; // default fallback weapon.
 
 			guns.push({
+				uid: '',
 				position,
 				pb2Model,
 				pb3Model,
@@ -484,6 +492,7 @@ export class PB3Map {
 			const actAsWater = pb2Object.$.friction === undefined ? true : pb2Object.$.friction === 'true';
 
 			waters.push({
+				uid: '',
 				geometry: geometry,
 				liquidKindUID: this.getOrCreateLiquidKind(damage, actAsWater).uid,
 			});
@@ -503,6 +512,7 @@ export class PB3Map {
 			const speed = Number(pb2Object.$.maxspeed ?? 10);
 
 			movables.push({
+				uid: '',
 				geometry: geometry,
 				visible: visible,
 				speed: speed,
@@ -549,6 +559,7 @@ export class PB3Map {
 			}
 
 			regions.push({
+				uid: '',
 				geometry: geometry,
 				activationClause: activationClause,
 				triggerToExecuteUID: triggerToExecuteUID,
@@ -561,10 +572,27 @@ export class PB3Map {
 		return regions;
 	};
 
+	private parsePB2Pusher = (pb2Objects: ParsedPB2XMLObject[]): RegionEntity[] => {
+		const pushers: RegionEntity[] = [];
+
+		for (const pb2Object of pb2Objects) {
+			const geometry = parseGeometry(pb2Object);
+			// const pushX = Number(pb2Object.$.tox ?? 0);
+			// const pushY = Number(pb2Object.$.toy ?? 0);
+			// const stabilityDamage = Number(pb2Object.$.stab ?? 0);
+			// const damage = Number(pb2Object.$.damage ?? 0);
+
+			updateWorldBoundary(this.worldBoundary, geometry);
+		}
+
+		return pushers;
+	};
+
 	private parsePB2Character = (pb2Objects: ParsedPB2XMLObject[], isPlayer: boolean): CharacterEntity[] => {
 		const entities: CharacterEntity[] = pb2Objects.map(({ $: props }) => {
 			const noBehaviour = Number(props.botaction ?? 0) === 4;
 			return {
+				uid: '',
 				position: {
 					x: Number(props.x ?? 0),
 					y: Number(props.y ?? 0),

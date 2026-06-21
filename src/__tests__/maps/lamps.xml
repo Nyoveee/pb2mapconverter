@@ -1,0 +1,1 @@
+<lamp uid="#light*1" x="-80" y="-80" power="0.4" flare="1" /><lamp uid="#light*2" x="80" y="-80" power="0.4" flare="false" /><lamp uid="#light*3" x="-80" y="80" power="1" flare="1" /><lamp uid="#light*4" x="80" y="80" power="1" flare="false" />

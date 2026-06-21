@@ -15,6 +15,7 @@ node_modules/
 
 # Ignore test input maps
 src/__tests__/maps/**
+src/__tests__/expected/**
 
 # I want my tab aligned comments.
 src/utils/surface.ts

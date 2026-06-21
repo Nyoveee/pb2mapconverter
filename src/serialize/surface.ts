@@ -1,16 +1,8 @@
 import type { SurfaceEntity } from '#pb2Objects/entity-types.js';
+import { SurfaceType, type SurfaceT } from '#pb2Objects/surface.js';
 
 import { blackColor, colorToPB2Hex, multiplyColor, pb2BlueColor, pb2GreenColor, pb2RedColor, type Color } from '#utils/color.js';
 import { toPB3String } from './serialize.js';
-
-// Modern TS way of defining an enum.
-export const SurfaceType = {
-	Wall: 1,
-	Background: 2,
-	Movable: 3,
-} as const;
-
-type SurfaceT = (typeof SurfaceType)[keyof typeof SurfaceType];
 
 export const serializeSurface = (surface: SurfaceEntity, surfaceType: SurfaceT, x: number, y: number) => {
 	// Different types of surface (wall, background and movable) have different parameters.

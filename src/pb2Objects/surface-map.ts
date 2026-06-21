@@ -79,7 +79,7 @@ export const createPB2BackgroundSurface = (materialIndex: number, count: number,
 	};
 };
 
-export const createPB2MovableSurface_isVisible = (visible: boolean) => {
+export const createPB2MovableSurface_isVisible = (visible: boolean): SurfaceEntity => {
 	const visibleMovableSurfaceUID = `visibleMovableSurface`;
 	const invisibleMovableSurfaceUID = `invisibleMovableSurface`;
 	const BLACK_WALL_INDEX = -1;

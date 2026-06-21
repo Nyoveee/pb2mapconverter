@@ -163,6 +163,7 @@ export const PB2GunModelToPB3Gadget: Record<string, string> = {
 	item_grenade: 'HE', // pb2ArmsAction.ACTION_TYPE_THROW_GRENADE_HE
 	item_port: 'PORT', // pb2ArmsAction.ACTION_TYPE_THROW_GRENADE_PORT
 	item_shield: 'SHIELD', // pb2ArmsAction.ACTION_TYPE_THROW_GRENADE_SHIELD
+	gun_sp_sh: 'SHIELD', // pb2ArmsAction.ACTION_TYPE_THROW_GRENADE_SHIELD
 };
 
 export const getRegionSpecificProperties = (region: RegionEntity) => {

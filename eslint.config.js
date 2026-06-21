@@ -60,6 +60,7 @@ export default tseslint.config(
 					allowNullish: true,
 				},
 			],
+			'vitest/expect-expect': ['error', { assertFunctionNames: ['expect', 'verifyParsingOf'] }],
 		},
 	},
 );

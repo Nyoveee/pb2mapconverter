@@ -39,3 +39,13 @@ export type BackgroundIdentifierStr = `mat:${number}_r:${string}_g:${string}_b:$
 export const getBackgroundKey = (id: BackgroundIdentifier): BackgroundIdentifierStr => {
 	return `mat:${id.materialId}_r:${id.colorMultiplier.red}_g:${id.colorMultiplier.green}_b:${id.colorMultiplier.blue}`;
 };
+
+// To differentiate between different surfaces..
+// Modern TS way of defining an enum.
+export const SurfaceType = {
+	Wall: 1,
+	Background: 2,
+	Movable: 3,
+} as const;
+
+export type SurfaceT = (typeof SurfaceType)[keyof typeof SurfaceType];

@@ -2,49 +2,46 @@ import type { Color } from '#utils/color.js';
 import type { Geometry, Position, Side } from '#utils/types.js';
 import type { SurfaceInfo } from './surface.js';
 
+// The base class which rules them all..
+interface EditorObject {
+	uid: string;
+}
+
 // ===============================================
 // PB3 Objects
 // ===============================================
-export interface SurfaceEntity extends SurfaceInfo {
-	uid: string;
+export interface SurfaceEntity extends SurfaceInfo, EditorObject {
 	count: number; // useful data to generate other data like position.
 	color: Color; // color multiplier (walls dont have color multiplier, so it would be 255, 255, 255).
 	visible: boolean; // some movables are not visible.
 }
-
-export interface LiquidKindEntity {
-	uid: string;
+export interface LiquidKindEntity extends EditorObject {
 	count: number;
 	damage: number;
 	actAsWater: boolean;
 }
 
-export interface TeamEntity {
-	uid: string;
+export interface TeamEntity extends EditorObject {
 	count: number;
 	name: string;
 }
 
-export interface SkinEntity {
-	uid: string;
+export interface SkinEntity extends EditorObject {
 	count: number;
 	pb2Model: number;
 	pb3Model: number;
 }
 
-export interface AIPresetEntity {
-	uid: string;
+export interface AIPresetEntity extends EditorObject {
 	count: number;
 	// is there anything that should be changed from defaults?
 }
 
-export interface PointEntity {
-	uid: string;
+export interface PointEntity extends EditorObject {
 	position: Position;
 }
 
-export interface UseButtonEntity {
-	uid: string;
+export interface UseButtonEntity extends EditorObject {
 	position: Position;
 	triggerToExecuteUID: string | null;
 	attachedMovableUID: string | null;
@@ -54,13 +51,13 @@ export interface UseButtonEntity {
 // PB2/PB3 Objects
 // ===============================================
 
-export interface WallEntity {
+export interface WallEntity extends EditorObject {
 	geometry: Geometry;
 	materialIndex: number;
 	surfaceUID: string; // pb3 property
 }
 
-export interface BackgroundEntity {
+export interface BackgroundEntity extends EditorObject {
 	geometry: Geometry;
 	backgroundMaterialIndex: number;
 	textureXOffset: number;
@@ -70,7 +67,7 @@ export interface BackgroundEntity {
 	attachedMovableUID: string | undefined;
 }
 
-export interface MovableEntity {
+export interface MovableEntity extends EditorObject {
 	geometry: Geometry;
 	visible: boolean;
 	speed: number;
@@ -78,25 +75,25 @@ export interface MovableEntity {
 	attachedMovableUID: string | null;
 }
 
-export interface WaterEntity {
+export interface WaterEntity extends EditorObject {
 	geometry: Geometry;
 	liquidKindUID: string; // pb3 property
 }
 
-export interface RegionEntity {
+export interface RegionEntity extends EditorObject {
 	geometry: Geometry;
 	activationClause: number;
 	triggerToExecuteUID: string | null;
 	attachedMovableUID: string | null;
 }
 
-export interface LampEntity {
+export interface LampEntity extends EditorObject {
 	position: Position;
 	power: number;
 	hasFlare: boolean;
 }
 
-export interface GunEntity {
+export interface GunEntity extends EditorObject {
 	position: Position;
 	pb2Model: string;
 	pb3Model: string;
@@ -105,7 +102,7 @@ export interface GunEntity {
 	teamUID: string | null; // pb3 property
 }
 
-export interface CharacterEntity {
+export interface CharacterEntity extends EditorObject {
 	position: Position;
 	velX: number;
 	velY: number;
