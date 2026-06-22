@@ -39,6 +39,7 @@ export const serializeBox = ({
 	const waterClass = kind === 'water' ? entity.liquidKindUID : null;
 
 	// Handle region specific properties..
+	const regionProperties = kind !== 'region' ? {} : getRegionSpecificProperties(entity);
 
 	const code = `
     pb2GameWorld.CreateBoxShape(
@@ -51,7 +52,7 @@ export const serializeBox = ({
         ${model !== null ? `m: ${model}, ` : ''}
         ${waterClass !== null ? `wc: ${waterClass}, ` : ''}
 
-        type: ${type}${kind === 'movable' ? ', hea: 0' : ''}  
+        type: ${type}${kind === 'movable' ? ', hea: 0' : ''}
     });
     `;
 
@@ -96,7 +97,7 @@ export const serializeBox = ({
 				}),
 
 		// Add region specific properties
-		...(kind !== 'region' ? {} : getRegionSpecificProperties(entity)),
+		...regionProperties,
 	};
 
 	return toPB3String({ code: code, jsonObject: JSON.stringify(editor_object) });

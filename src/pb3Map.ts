@@ -48,6 +48,7 @@ import { serializeSkin } from '#serialize/skin.js';
 import { serializeAIPreset } from '#serialize/ai-preset.js';
 import { serializeCharacter } from '#serialize/character.js';
 import {
+	EDITOR_ICON_HEIGHT,
 	EDITOR_ICON_WIDTH,
 	getPB3EntityDetails,
 	iconHeightGap,
@@ -183,12 +184,15 @@ export class PB3Map {
 		globalNames.push(...this.points.map((s) => s.uid));
 
 		for (const triggerGroup of this.triggerGroups) {
+			globalNames.push(triggerGroup.uid);
 			globalNames.push(...triggerGroup.children.map((s) => s.uid));
 		}
 
 		if (globalNames.length > 0) {
 			pb3SourceCode += `var ${globalNames.join(', ')};`;
 		}
+
+		this.triggerGroups.map((triggerGroup) => (pb3SourceCode += `${triggerGroup.uid}=()=>_pb2TU('${triggerGroup.uid}');`));
 
 		// -------------------------------
 		// 2. We append necessary headers (loading module, custom scripts, etc..)
@@ -762,46 +766,74 @@ export class PB3Map {
 	};
 
 	private createPusherTriggerGroups = () => {
-		const PUSHER_STRENGTH_MULTIPLIER = 10; // Pushers in PB2 are much stronger compared to PB3.
+		const PUSHER_STRENGTH_MULTIPLIER = 270; // Pushers in PB2 are much stronger compared to PB3.
+		const PUSHER_DAMAGE_MULTIPLIER = 0.12; // Pushers in PB2 are much weaker compared to PB3.
 
 		// A pusher in PB3 can be simulated with the region sub-step push function.
 		// We require 3 game objects
 		// 1. Trigger group (to call the Execute method)
-		// 2. Execute method (responsible for calling the region sub-step push function)
+		// 2. Execute methods (1 - responsible for calling the region sub-step push function, 2 - responsible for calling region damage function)
 		// 3. Vector (argument used to indicate pushing direction)
 		for (const pusher of this.pushers) {
 			const centerPosition = getCenterPosition(pusher.geometry);
 
-			const vector: Vector = {
-				position: { x: centerPosition.x + EDITOR_ICON_WIDTH, y: centerPosition.y },
-				uid: this.getUniqueUID('vector'),
-				dx: pusher.dx * PUSHER_STRENGTH_MULTIPLIER,
-				dy: pusher.dy * PUSHER_STRENGTH_MULTIPLIER,
-				serialize() {
-					return serializeVector(this);
-				},
-			};
-
-			const executeMethod: ExecuteMethod = {
-				position: { x: centerPosition.x, y: centerPosition.y },
-				uid: this.getUniqueUID('execute_method'),
-				functionName: 'ApplyPushForceLogicToBody',
-				arguments: ['rigid_body', vector.uid],
-				serialize() {
-					return serializeExecuteMethod(this);
-				},
-			};
-
-			const triggerGroup = {
+			const triggerGroup: TriggerGroupEntity = {
 				position: { x: centerPosition.x - EDITOR_ICON_WIDTH, y: centerPosition.y },
 				uid: this.getUniqueUID('group_tool'),
-				children: [vector, executeMethod],
-				arguments: ['rigid_body'],
+				children: [],
+				arguments: ['rigid_body', '_', 'GSPEED'],
 				maxCalls: Infinity,
 				serialize() {
 					return serializeTriggerGroup(this);
 				},
 			};
+
+			// Create vector and push execute method to emulate pushing effect..
+			if (pusher.dx !== 0 || pusher.dy !== 0) {
+				const vector: Vector = {
+					position: { x: centerPosition.x + EDITOR_ICON_WIDTH, y: centerPosition.y },
+					uid: this.getUniqueUID('vector'),
+					dx: pusher.dx * PUSHER_STRENGTH_MULTIPLIER,
+					dy: pusher.dy * PUSHER_STRENGTH_MULTIPLIER,
+					serialize() {
+						return serializeVector(this);
+					},
+				};
+
+				const pushExecuteMethod: ExecuteMethod = {
+					position: { x: centerPosition.x, y: centerPosition.y },
+					uid: this.getUniqueUID('execute_method'),
+					functionName: 'ApplyPushForceLogicToBody',
+					arguments: ['rigid_body', vector.uid],
+					serialize() {
+						return serializeExecuteMethod(this);
+					},
+				};
+
+				triggerGroup.children.push(vector, pushExecuteMethod);
+			}
+
+			// Create damage execute method to emulate damaging effect..
+			if (pusher.damage !== 0) {
+				const damage = Math.abs(pusher.damage) * PUSHER_DAMAGE_MULTIPLIER;
+
+				const damageExecuteMethod: ExecuteMethod = {
+					position: { x: centerPosition.x, y: centerPosition.y + EDITOR_ICON_HEIGHT },
+					uid: this.getUniqueUID('execute_method'),
+					functionName: 'ApplyRegionDamage_PB2Preset',
+					arguments: ['rigid_body', `${damage}`, 'GSPEED'],
+					serialize() {
+						return serializeExecuteMethod(this);
+					},
+				};
+
+				triggerGroup.children.push(damageExecuteMethod);
+			}
+
+			// This is a useless pusher, no point creating..
+			if (triggerGroup.children.length == 0) {
+				continue;
+			}
 
 			this.triggerGroups.push(triggerGroup);
 
