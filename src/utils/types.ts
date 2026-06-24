@@ -27,6 +27,23 @@ export interface Geometry {
 	h: number;
 }
 
+// PB2's UID are not valid UIDs for PB3, due to # and * characters.
+export const reformatPB2UID = (uid: string | undefined): string => {
+	const string = uid ?? '';
+
+	if (string === '') {
+		return string;
+	}
+
+	return string.replace(/#/g, '').replace(/\*/g, '_');
+};
+
+// in PB2, references to other entities can either be undefined or '-1'.
+export const parsePB2UIDReference = (uid: string | undefined): string | null => {
+	const reformatedUid = reformatPB2UID(uid);
+	return reformatedUid === '' || reformatedUid === '-1' ? null : reformatedUid;
+};
+
 /**
  * -1 = left
  * 1 = right

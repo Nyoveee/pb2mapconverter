@@ -179,4 +179,5 @@ export interface PusherEntity {
 	dy: number;
 	stabliityDamage: number;
 	damage: number;
+	attachedMovableUID: string | null;
 }

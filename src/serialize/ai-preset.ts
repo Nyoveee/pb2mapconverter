@@ -43,7 +43,8 @@ export const serializeAIPreset = (entity: AIPresetEntity) => {
             hunt_random_known_threats_range: ${hunt_random_known_threats_range}, 
             heal_teammates: true, 
             hear_range: ${hear_range}, 
-            sequence_behavior: pb2AIModule.SEQUENCE_BEHAVIOR_SERIOUS 
+            sequence_behavior: pb2AIModule.SEQUENCE_BEHAVIOR_SERIOUS, 
+			allow_revenge_teamkilling: true 
         };
     `;
 

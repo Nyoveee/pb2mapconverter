@@ -4,7 +4,7 @@ import { toPB3String } from './serialize.js';
 export const serializeExecuteMethod = (entity: ExecuteMethod): string => {
 	const fullFunctionName = `globalThis.${entity.functionName}`;
 	const executeArguments = entity.arguments.join(', ');
-	const code = `${fullFunctionName}(${executeArguments});`;
+	const code = `${fullFunctionName}( ${executeArguments} );`;
 
 	const attributeObject: Record<string, string> = {};
 

@@ -6,7 +6,6 @@ import { toPB3String } from './serialize.js';
 const DEFAULT_EDITOR_OBJECT = {
 	operation: 'create',
 	constructor: 'pb2Gun.CreateGun',
-	id: '',
 	x: '0',
 	y: '0',
 	scale: '1',
@@ -19,7 +18,7 @@ const DEFAULT_EDITOR_OBJECT = {
 
 export const serializeGun = (entity: GunEntity): string => {
 	const code = `
-    pb2Gun.CreateGun(
+	${entity.uid} = pb2Gun.CreateGun(
     { 
         x: ${entity.position.x}, 
         y: ${entity.position.y}, 
@@ -29,6 +28,7 @@ export const serializeGun = (entity: GunEntity): string => {
 
 	const editor_object = {
 		...DEFAULT_EDITOR_OBJECT,
+		id: entity.uid,
 		x: entity.position.x.toString(),
 		y: entity.position.y.toString(),
 		type: `'${entity.pb3Model}'`,

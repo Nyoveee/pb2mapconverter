@@ -3,7 +3,7 @@ import { toPB3String } from './serialize.js';
 
 export const serializePB3Entity = (pb3Entity: PB3Entity): string => {
 	const code = `
-        pb2Entity.CreateEntity({ 
+		${pb3Entity.uid} = pb2Entity.CreateEntity({ 
             x: ${pb3Entity.position.x}, 
             y: ${pb3Entity.position.y}, 
             type: ${pb3Entity.type}, 
@@ -18,7 +18,7 @@ export const serializePB3Entity = (pb3Entity: PB3Entity): string => {
 	const editor_object = {
 		operation: 'create',
 		constructor: 'pb2Entity.CreateEntity',
-		id: '',
+		id: pb3Entity.uid,
 		x: `${pb3Entity.position.x}`,
 		y: `${pb3Entity.position.y}`,
 		type: pb3Entity.type,

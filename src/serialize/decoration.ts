@@ -3,7 +3,7 @@ import { toPB3String } from './serialize.js';
 
 export const serializeDecoration = (decoration: DecorationEntity): string => {
 	const code = `
-    pb2Decoration.CreateDecoration({ 
+    ${decoration.uid} = pb2Decoration.CreateDecoration({ 
         x: ${decoration.position.x}, 
         y: ${decoration.position.y}, 
         is_static: true, 
@@ -11,16 +11,16 @@ export const serializeDecoration = (decoration: DecorationEntity): string => {
         model_source: null, 
         use_offset: true, 
         offsetX: ${decoration.textureXOffset}, 
-        offsetY: ${decoration.textureYOffset},
-        scaleX: ${decoration.scaleX},
-        scaleY: ${decoration.scaleY},
-        rotationZ: ${decoration.rotationZ} / 180 * Math.PI
+        offsetY: ${decoration.textureYOffset}, 
+        scaleX: ${decoration.scaleX}, 
+        scaleY: ${decoration.scaleY}, 
+        rotationZ: ${decoration.rotationZ} / 180 * Math.PI 
     });`;
 
 	const editor_object = {
 		operation: 'create',
 		constructor: 'pb2Decoration.CreateDecoration',
-		id: '',
+		id: decoration.uid,
 		x: `${decoration.position.x}`,
 		y: `${decoration.position.y}`,
 		z: '0',

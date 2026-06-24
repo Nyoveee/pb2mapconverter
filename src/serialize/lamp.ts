@@ -4,7 +4,6 @@ import { toPB3String } from './serialize.js';
 const DEFAULT_EDITOR_OBJECT = {
 	operation: 'create',
 	constructor: 'pb2Light.CreateLight',
-	id: '',
 	x: '0',
 	y: '0',
 	is_static: 'true',
@@ -25,7 +24,7 @@ const DEFAULT_EDITOR_OBJECT = {
 
 export const serializeLamp = (entity: LampEntity): string => {
 	const code = `
-    pb2Light.CreateLight(
+	${entity.uid} = pb2Light.CreateLight(
     { 
         x: ${entity.position.x}, 
         y: ${entity.position.y}, 
@@ -39,6 +38,7 @@ export const serializeLamp = (entity: LampEntity): string => {
 
 	const editor_object = {
 		...DEFAULT_EDITOR_OBJECT,
+		id: entity.uid,
 		x: entity.position.x.toString(),
 		y: entity.position.y.toString(),
 		power: entity.power.toString(),

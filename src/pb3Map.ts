@@ -4,7 +4,7 @@
     This is useful in a way to process and handle constraints like asset requirements,
     triggers, etc..
 */
-import type { BooleanAsString, ParsedPB2XMLObject, Position, WorldBoundary, XLMParseOutput } from '#utils/types.js';
+import { parsePB2UIDReference, reformatPB2UID, type BooleanAsString, type ParsedPB2XMLObject, type Position, type WorldBoundary, type XLMParseOutput } from '#utils/types.js';
 import type {
 	SurfaceEntity,
 	LiquidKindEntity,
@@ -182,6 +182,14 @@ export class PB3Map {
 		globalNames.push(...Object.values(this.teams).map((s) => s.uid));
 		globalNames.push(...Object.values(this.skins).map((s) => s.uid));
 		globalNames.push(...Object.values(this.aiPresets).map((s) => s.uid));
+		globalNames.push(...Object.values(this.lamps).map((s) => s.uid));
+		globalNames.push(...Object.values(this.guns).map((s) => s.uid));
+		globalNames.push(...Object.values(this.waters).map((s) => s.uid));
+		globalNames.push(...Object.values(this.movables).map((s) => s.uid));
+		globalNames.push(...Object.values(this.characters).map((s) => s.uid));
+		globalNames.push(...Object.values(this.regions).map((s) => s.uid));
+		globalNames.push(...Object.values(this.pb3Entities).map((s) => s.uid));
+		globalNames.push(...Object.values(this.decorations).map((s) => s.uid));
 		globalNames.push(...this.points.map((s) => s.uid));
 
 		for (const triggerGroup of this.triggerGroups) {
@@ -193,11 +201,11 @@ export class PB3Map {
 			pb3SourceCode += `var ${globalNames.join(', ')};`;
 		}
 
-		this.triggerGroups.map((triggerGroup) => (pb3SourceCode += `${triggerGroup.uid}=()=>_pb2TU('${triggerGroup.uid}');`));
-
 		// -------------------------------
 		// 2. We append necessary headers (loading module, custom scripts, etc..)
 		// -------------------------------
+		this.triggerGroups.map((triggerGroup) => (pb3SourceCode += `${triggerGroup.uid}=()=>_pb2TU('${triggerGroup.uid}');`));
+
 		pb3SourceCode += PB3StandardMapHeader;
 
 		// top-left corner
@@ -527,7 +535,7 @@ export class PB3Map {
 				textureYOffset: Number(pb2Object.$.v ?? 0),
 				drawInFront: Boolean(pb2Object.$.f ?? false),
 				surfaceUID: 'null',
-				attachedMovableUID: null,
+				attachedMovableUID: parsePB2UIDReference(pb2Object.$.a),
 				colorMultiplier: colorMultiplier,
 				serialize() {
 					return serializeBox({ kind: 'background', entity: this });
@@ -542,7 +550,7 @@ export class PB3Map {
 
 	private parsePB2Lamp = (pb2Objects: ParsedPB2XMLObject[]): LampEntity[] => {
 		const lamps: LampEntity[] = pb2Objects.map(({ $: props }) => ({
-			uid: '',
+			uid: reformatPB2UID(props.uid),
 			position: {
 				x: Number(props.x ?? 0),
 				y: Number(props.y ?? 0),
@@ -589,7 +597,7 @@ export class PB3Map {
 			pb3Model ??= 'gun_rifle'; // default fallback weapon.
 
 			guns.push({
-				uid: '',
+				uid: reformatPB2UID(props.uid),
 				position,
 				pb2Model,
 				pb3Model,
@@ -615,7 +623,7 @@ export class PB3Map {
 			const actAsWater = pb2Object.$.friction === undefined ? true : pb2Object.$.friction === 'true';
 
 			waters.push({
-				uid: '',
+				uid: reformatPB2UID(pb2Object.$.uid),
 				geometry: geometry,
 				damage: damage,
 				actAsWater: actAsWater,
@@ -640,12 +648,12 @@ export class PB3Map {
 			const speed = Number(pb2Object.$.maxspeed ?? 10);
 
 			movables.push({
-				uid: '',
+				uid: reformatPB2UID(pb2Object.$.uid),
 				geometry: geometry,
 				visible: visible,
 				speed: speed,
 				surfaceUID: 'null',
-				attachedMovableUID: null,
+				attachedMovableUID: parsePB2UIDReference(pb2Object.$.attach),
 				serialize() {
 					return serializeBox({ kind: 'movable', entity: this });
 				},
@@ -663,16 +671,8 @@ export class PB3Map {
 		for (const pb2Object of pb2Objects) {
 			const geometry = parseGeometry(pb2Object);
 			let activationClause = Number(pb2Object.$.use_on ?? 0);
-			let triggerToExecuteUID = null;
-			const attachedMovableUID = null;
-
-			// if (attachedMovableUID === '-1') {
-			// 	attachedMovableUID = null;
-			// }
-
-			// if (triggerToExecuteUID === '-1') {
-			// 	triggerToExecuteUID = null;
-			// }
+			let triggerToExecuteUID = parsePB2UIDReference(pb2Object.$.use_target);
+			const attachedMovableUID = parsePB2UIDReference(pb2Object.$.attach);
 
 			// If a PB2 region has a use button, we will create a USE button PB3 entity, inheriting the properties from the original region/
 			// The other region will be preserved as it may be used by other triggers. @todo: make it configurable..
@@ -681,7 +681,7 @@ export class PB3Map {
 					uid: '',
 					position: getCenterPosition(geometry),
 					triggerToExecuteUID: null,
-					attachedMovableUID: null,
+					attachedMovableUID: attachedMovableUID,
 					serialize() {
 						return serializeUseButton(this);
 					},
@@ -693,7 +693,7 @@ export class PB3Map {
 			}
 
 			regions.push({
-				uid: '',
+				uid: reformatPB2UID(pb2Object.$.uid),
 				geometry: geometry,
 				activationClause: activationClause,
 				triggerToExecuteUID: triggerToExecuteUID,
@@ -722,9 +722,9 @@ export class PB3Map {
 			}
 
 			const decoration: DecorationEntity = {
-				uid: '',
+				uid: reformatPB2UID(pb2Object.$.uid),
 				position: { x: Number(pb2Object.$.x ?? 0), y: Number(pb2Object.$.y ?? 0) },
-				attachedMovableUID: null,
+				attachedMovableUID: reformatPB2UID(pb2Object.$.attach),
 				scaleY: Number(pb2Object.$.sy ?? 1),
 				...properties,
 				serialize() {
@@ -760,7 +760,7 @@ export class PB3Map {
 			const healthScale = Number(pb2Object.$.hpp ?? 100) / 100;
 
 			vehicles.push({
-				uid: this.getUniqueUID('entity'),
+				uid: reformatPB2UID(pb2Object.$.uid),
 				position: { x: Number(pb2Object.$.x ?? 0), y: Number(pb2Object.$.y ?? 0) },
 				direction: Number(pb2Object.$.side) === -1 ? -1 : 1,
 				healthScale,
@@ -779,19 +779,19 @@ export class PB3Map {
 
 		for (const pb2Object of pb2Objects) {
 			const geometry = parseGeometry(pb2Object);
-			const uid = pb2Object.$.uid ?? this.getUniqueUID('pusher');
 			const pushX = Number(pb2Object.$.tox ?? 0);
 			const pushY = Number(pb2Object.$.toy ?? 0);
 			const stabilityDamage = Number(pb2Object.$.stab ?? 0);
 			const damage = Number(pb2Object.$.damage ?? 0);
 
 			pushers.push({
-				uid: uid,
+				uid: reformatPB2UID(pb2Object.$.uid),
 				geometry: geometry,
 				dx: pushX,
 				dy: pushY,
 				stabliityDamage: stabilityDamage,
 				damage: damage,
+				attachedMovableUID: parsePB2UIDReference(pb2Object.$.attach),
 			});
 
 			updateWorldBoundary(this.worldBoundary, geometry);
@@ -878,7 +878,7 @@ export class PB3Map {
 				geometry: pusher.geometry,
 				activationClause: PUSHER,
 				triggerToExecuteUID: triggerGroup.uid,
-				attachedMovableUID: null,
+				attachedMovableUID: pusher.attachedMovableUID,
 				serialize() {
 					return serializeBox({ kind: 'region', entity: this });
 				},
@@ -890,7 +890,7 @@ export class PB3Map {
 		const entities: CharacterEntity[] = pb2Objects.map(({ $: props }) => {
 			const noBehaviour = Number(props.botaction ?? 0) === 4;
 			return {
-				uid: '',
+				uid: reformatPB2UID(props.uid),
 				position: {
 					x: Number(props.x ?? 0),
 					y: Number(props.y ?? 0),

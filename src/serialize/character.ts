@@ -4,7 +4,6 @@ import { toPB3String } from './serialize.js';
 const DEFAULT_EDITOR_OBJECT = {
 	operation: 'create',
 	constructor: 'pb2Ragdoll.CreateRagdollComplete',
-	id: '',
 	x: '0',
 	y: '0',
 	tox: '0',
@@ -46,7 +45,7 @@ export const serializeCharacter = (entity: CharacterEntity): string => {
 	const vision = 'pb2Vision.VISION_DIRECTED_TRACE';
 
 	const code = `
-    pb2Ragdoll.CreateRagdollComplete(
+	${entity.uid} = pb2Ragdoll.CreateRagdollComplete(
     { 
         x: ${entity.position.x}, 
         y: ${entity.position.y}, 
@@ -78,6 +77,7 @@ export const serializeCharacter = (entity: CharacterEntity): string => {
 
 	const editor_object = {
 		...DEFAULT_EDITOR_OBJECT,
+		id: entity.uid,
 		x: entity.position.x.toString(),
 		y: entity.position.y.toString(),
 		tox: entity.velX.toString(),

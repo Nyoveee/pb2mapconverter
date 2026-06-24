@@ -42,7 +42,7 @@ export const serializeBox = ({
 	const regionProperties = kind !== 'region' ? {} : getRegionSpecificProperties(entity);
 
 	const code = `
-    pb2GameWorld.CreateBoxShape(
+	${entity.uid}${entity.uid !== '' ? ' = ' : ''}pb2GameWorld.CreateBoxShape(
     { 
         x: ${entity.geometry.x}, 
         y: ${entity.geometry.y}, 
@@ -52,8 +52,8 @@ export const serializeBox = ({
         ${model !== null ? `m: ${model}, ` : ''}
         ${waterClass !== null ? `wc: ${waterClass}, ` : ''}
 
-        type: ${type}${kind === 'movable' ? ', hea: 0' : ''}
-    });
+        type: ${type} ${kind === 'movable' ? ', hea: 0 ' : ''}		
+	});
     `;
 
 	const editor_object = {
@@ -77,13 +77,13 @@ export const serializeBox = ({
 		_visible: '1',
 		_locked: '0',
 		_disabled: '0',
-		id: '',
+		id: entity.uid,
 
 		// Add movable / background specific property.. in this case the attached property.
 		...(kind !== 'movable' && kind !== 'background' && kind !== 'region'
 			? {}
 			: {
-					attached_to: 'null',
+					attached_to: `${entity.attachedMovableUID}`,
 				}),
 
 		// Add movable specific properties..
