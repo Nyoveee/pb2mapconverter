@@ -52,6 +52,7 @@ export interface TriggerGroupEntity extends EditorObject {
 	children: EditorObject[];
 	arguments: string[];
 	maxCalls: number;
+	enabled: boolean;
 }
 
 export interface Vector extends EditorObject {

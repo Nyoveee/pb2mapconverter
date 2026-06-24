@@ -65,6 +65,7 @@ import { serializeExecuteMethod } from '#serialize/executeMethod.js';
 import { serializeTriggerGroup } from '#serialize/triggerGroup.js';
 import { serializePB3Entity } from '#serialize/pb3Entity.js';
 import { serializeDecoration } from '#serialize/decoration.js';
+import { getAssociatedExecuteMethodProperties } from '#pb2Objects/trigger-values.js';
 
 export class PB3Map {
 	// ============================================================================================
@@ -145,6 +146,9 @@ export class PB3Map {
 					break;
 				case 'decor':
 					this.decorations = this.parseDecorations(parsedPB2Objects);
+					break;
+				case 'trigger':
+					this.triggerGroups = this.parsePB2Triggers(parsedPB2Objects);
 					break;
 				default:
 			}
@@ -472,6 +476,64 @@ export class PB3Map {
 		return entity;
 	};
 
+	private parsePB2Triggers = (pb2Objects: ParsedPB2XMLObject[]): TriggerGroupEntity[] => {
+		const triggers: TriggerGroupEntity[] = [];
+
+		for (const pb2Object of pb2Objects) {
+			const executeMethods: ExecuteMethod[] = [];
+			const position: Position = {
+				x: Number(pb2Object.$.x ?? 0),
+				y: Number(pb2Object.$.y ?? 0),
+			};
+
+			const enabled = (pb2Object.$.enabled ?? 'true') === 'true';
+
+			for (let i = 1; i <= 100; i++) {
+				const actionType = pb2Object.$[`actions_${i}_type`];
+				const argumentA = pb2Object.$[`actions_${i}_targetA`];
+				const argumentB = pb2Object.$[`actions_${i}_targetB`];
+
+				// no more trigger actions..
+				if (actionType === undefined || argumentA === undefined || argumentB === undefined) {
+					break;
+				}
+
+				const executeMethodProperties = getAssociatedExecuteMethodProperties(actionType, argumentA, argumentB);
+
+				// Not a supported trigger action
+				if (executeMethodProperties === null) {
+					continue;
+				}
+
+				executeMethods.push({
+					uid: this.getUniqueUID('execute_method'),
+					position: {
+						x: position.x + EDITOR_ICON_WIDTH * (executeMethods.length + 1),
+						y: position.y,
+					},
+					...executeMethodProperties,
+					serialize() {
+						return serializeExecuteMethod(this);
+					},
+				});
+			}
+
+			triggers.push({
+				uid: reformatPB2UID(pb2Object.$.uid),
+				position: position,
+				children: executeMethods,
+				arguments: [],
+				maxCalls: Number(pb2Object.$.maxcalls ?? 1),
+				enabled: enabled,
+				serialize() {
+					return serializeTriggerGroup(this);
+				},
+			});
+		}
+
+		return triggers;
+	};
+
 	// Parses a given PB2 xml object into PB2 wall.
 	// When parsing PB2 walls, also keep track of world boundary and materials.
 	private parsePB2Walls = (pb2Objects: ParsedPB2XMLObject[]): WallEntity[] => {
@@ -680,7 +742,7 @@ export class PB3Map {
 				this.useButtons.push({
 					uid: '',
 					position: getCenterPosition(geometry),
-					triggerToExecuteUID: null,
+					triggerToExecuteUID: triggerToExecuteUID,
 					attachedMovableUID: attachedMovableUID,
 					serialize() {
 						return serializeUseButton(this);
@@ -818,6 +880,7 @@ export class PB3Map {
 				children: [],
 				arguments: ['rigid_body', '_', 'GSPEED'],
 				maxCalls: Infinity,
+				enabled: true,
 				serialize() {
 					return serializeTriggerGroup(this);
 				},

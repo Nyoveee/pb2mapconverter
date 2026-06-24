@@ -1,3 +1,7 @@
+/*
+	This file contains all mapping of PB2 hardcoded values to PB3 properties.
+*/
+
 import type { RegionEntity } from './entity-types.js';
 
 export const teamNames: Record<number, string> = {

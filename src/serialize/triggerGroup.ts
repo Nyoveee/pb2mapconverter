@@ -29,7 +29,7 @@ export const serializeTriggerGroup = (triggerGroup: TriggerGroupEntity): string 
 		y: `${triggerGroup.position.y}`,
 		_visible: '1',
 		_locked: '0',
-		_disabled: '0',
+		_disabled: triggerGroup.enabled ? '0' : '1',
 		_test_call: 'TestExec',
 		_test_call_argument_values: '',
 	};
