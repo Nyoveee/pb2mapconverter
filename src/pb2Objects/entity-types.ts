@@ -83,7 +83,7 @@ export interface BackgroundEntity extends EditorObject {
 	textureYOffset: number;
 	drawInFront: boolean;
 	surfaceUID: string; // pb3 property
-	attachedMovableUID: string | undefined;
+	attachedMovableUID: string | null;
 	colorMultiplier: Color;
 }
 
@@ -155,6 +155,18 @@ export interface PB3Entity extends EditorObject {
 	direction: Side;
 	type: string;
 	styleId: string;
+}
+
+export interface DecorationEntity extends EditorObject {
+	position: Position;
+	attachedMovableUID: string | null;
+	textureXOffset: number;
+	textureYOffset: number;
+	scaleX: number;
+	scaleY: number;
+	rotationZ: number;
+	userDataId: string;
+	previewName: string;
 }
 
 // ===============================================

@@ -26,6 +26,7 @@ import type {
 	Vector,
 	PusherEntity,
 	PB3Entity,
+	DecorationEntity,
 } from '#pb2Objects/entity-types.js';
 import { getBackgroundKey, type BackgroundIdentifierStr } from '#pb2Objects/surface.js';
 import { getLiquidKindKey, type LiquidIdentifierStr } from '#pb2Objects/liquid.js';
@@ -37,12 +38,7 @@ import { serializeLamp } from '#serialize/lamp.js';
 import { serializeGun } from '#serialize/gun.js';
 import { doubleColor, hexToColor, isValidHexCode, whiteColor, type Color } from '#utils/color.js';
 import { serializeLiquidKind } from '#serialize/liquid.js';
-import {
-	createPB2BackgroundSurface,
-	createPB2MovableSurface_isVisible,
-	createPB2WallSurface,
-	pb2ShadowBackgroundMaterial,
-} from '#pb2Objects/surface-map.js';
+import { createPB2BackgroundSurface, createPB2MovableSurface_isVisible, createPB2WallSurface, pb2ShadowBackgroundMaterial } from '#pb2Objects/surface-map.js';
 import { serializeTeam } from '#serialize/team.js';
 import { serializeSkin } from '#serialize/skin.js';
 import { serializeAIPreset } from '#serialize/ai-preset.js';
@@ -54,6 +50,7 @@ import {
 	iconHeightGap,
 	isRegionAUSEButton,
 	NO_ACTIVATION_METHOD,
+	PB2DecorToPB3Decor,
 	PB2GunModelToPB3,
 	PB2GunModelToPB3Gadget,
 	PB2SkinToPB3,
@@ -66,7 +63,8 @@ import { serializeUseButton } from '#serialize/useButton.js';
 import { serializeVector } from '#serialize/vector.js';
 import { serializeExecuteMethod } from '#serialize/executeMethod.js';
 import { serializeTriggerGroup } from '#serialize/triggerGroup.js';
-import { serializeVehicle } from '#serialize/vehicle.js';
+import { serializePB3Entity } from '#serialize/pb3Entity.js';
+import { serializeDecoration } from '#serialize/decoration.js';
 
 export class PB3Map {
 	// ============================================================================================
@@ -80,6 +78,7 @@ export class PB3Map {
 	private characters: CharacterEntity[] = [];
 	private regions: RegionEntity[] = [];
 	private pushers: PusherEntity[] = [];
+	private decorations: DecorationEntity[] = [];
 
 	// Derived PB3 Objects.. (assets, execute method, comments, etc..)
 	private wallSurfaces: Record<number, SurfaceEntity> = {}; // maps every unique PB2 wall material (an id) with a created wall surface.
@@ -144,8 +143,10 @@ export class PB3Map {
 				case 'barrel':
 					this.pb3Entities.push(...this.parsePB3Entity(parsedPB2Objects));
 					break;
+				case 'decor':
+					this.decorations = this.parseDecorations(parsedPB2Objects);
+					break;
 				default:
-					console.warn(`Encountered unknown / unsupported xml tag of ${pb2ObjectName}`);
 			}
 		}
 
@@ -289,6 +290,10 @@ export class PB3Map {
 			pb3SourceCode += pb3Entity.serialize();
 		}
 
+		for (const decoration of this.decorations) {
+			pb3SourceCode += decoration.serialize();
+		}
+
 		// -------------------------------
 		// 4. We append necessary footers (custom scripts, finalizeWorld, etc..)
 		// -------------------------------
@@ -359,12 +364,7 @@ export class PB3Map {
 
 		let entity = this.backgroundSurfaces[key];
 		if (entity === undefined) {
-			entity = createPB2BackgroundSurface(
-				materialIndex,
-				colorMultiplier,
-				this.getAppropriatePosition('surfaceBg', count),
-				this.getUniqueUID('backgroundSurface'),
-			);
+			entity = createPB2BackgroundSurface(materialIndex, colorMultiplier, this.getAppropriatePosition('surfaceBg', count), this.getUniqueUID('backgroundSurface'));
 			this.backgroundSurfaces[key] = entity;
 		}
 		return entity;
@@ -527,7 +527,7 @@ export class PB3Map {
 				textureYOffset: Number(pb2Object.$.v ?? 0),
 				drawInFront: Boolean(pb2Object.$.f ?? false),
 				surfaceUID: 'null',
-				attachedMovableUID: undefined,
+				attachedMovableUID: null,
 				colorMultiplier: colorMultiplier,
 				serialize() {
 					return serializeBox({ kind: 'background', entity: this });
@@ -709,6 +709,41 @@ export class PB3Map {
 		return regions;
 	};
 
+	private parseDecorations = (pb2Objects: ParsedPB2XMLObject[]): DecorationEntity[] => {
+		const decorations: DecorationEntity[] = [];
+
+		for (const pb2Object of pb2Objects) {
+			const model = pb2Object.$.model ?? 'null';
+			const properties = PB2DecorToPB3Decor[model];
+
+			// Either custom decoration or some unsupported decorations..
+			if (properties === undefined) {
+				continue;
+			}
+
+			const decoration: DecorationEntity = {
+				uid: '',
+				position: { x: Number(pb2Object.$.x ?? 0), y: Number(pb2Object.$.y ?? 0) },
+				attachedMovableUID: null,
+				scaleY: Number(pb2Object.$.sy ?? 1),
+				...properties,
+				serialize() {
+					return serializeDecoration(this);
+				},
+			};
+
+			// We append user supplied initial rotation and scale..
+			decoration.rotationZ += Number(pb2Object.$.r ?? 0);
+			decoration.scaleX *= Number(pb2Object.$.sx ?? 1);
+
+			decorations.push(decoration);
+
+			updateWorldBoundary(this.worldBoundary, decoration.position);
+		}
+
+		return decorations;
+	};
+
 	private parsePB3Entity = (pb2Objects: ParsedPB2XMLObject[]): PB3Entity[] => {
 		const vehicles: PB3Entity[] = [];
 
@@ -731,7 +766,7 @@ export class PB3Map {
 				healthScale,
 				...entityProperties,
 				serialize() {
-					return serializeVehicle(this);
+					return serializePB3Entity(this);
 				},
 			});
 		}
