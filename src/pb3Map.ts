@@ -4,7 +4,16 @@
     This is useful in a way to process and handle constraints like asset requirements,
     triggers, etc..
 */
-import { parsePB2UIDReference, reformatPB2UID, type BooleanAsString, type ParsedPB2XMLObject, type Position, type WorldBoundary, type XLMParseOutput } from '#utils/types.js';
+import {
+	parsePB2MaxCalls,
+	parsePB2UIDReference,
+	reformatPB2UID,
+	type BooleanAsString,
+	type ParsedPB2XMLObject,
+	type Position,
+	type WorldBoundary,
+	type XLMParseOutput,
+} from '#utils/types.js';
 import type {
 	SurfaceEntity,
 	LiquidKindEntity,
@@ -27,6 +36,7 @@ import type {
 	PusherEntity,
 	PB3Entity,
 	DecorationEntity,
+	TimerEntity,
 } from '#pb2Objects/entity-types.js';
 import { getBackgroundKey, type BackgroundIdentifierStr } from '#pb2Objects/surface.js';
 import { getLiquidKindKey, type LiquidIdentifierStr } from '#pb2Objects/liquid.js';
@@ -66,6 +76,7 @@ import { serializeTriggerGroup } from '#serialize/triggerGroup.js';
 import { serializePB3Entity } from '#serialize/pb3Entity.js';
 import { serializeDecoration } from '#serialize/decoration.js';
 import { getAssociatedExecuteMethodProperties } from '#pb2Objects/trigger-values.js';
+import { serializeTimer } from '#serialize/timer.js';
 
 export class PB3Map {
 	// ============================================================================================
@@ -94,6 +105,7 @@ export class PB3Map {
 	private points: PointEntity[] = [];
 	private triggerGroups: TriggerGroupEntity[] = [];
 	private pb3Entities: PB3Entity[] = [];
+	private timers: TimerEntity[] = [];
 
 	// Metadata
 	private worldBoundary: WorldBoundary = { min: { x: Infinity, y: Infinity }, max: { x: -Infinity, y: -Infinity } };
@@ -150,6 +162,9 @@ export class PB3Map {
 				case 'trigger':
 					this.triggerGroups = this.parsePB2Triggers(parsedPB2Objects);
 					break;
+				case 'timer':
+					this.timers = this.parsePB2Timers(parsedPB2Objects);
+					break;
 				default:
 			}
 		}
@@ -194,6 +209,7 @@ export class PB3Map {
 		globalNames.push(...Object.values(this.regions).map((s) => s.uid));
 		globalNames.push(...Object.values(this.pb3Entities).map((s) => s.uid));
 		globalNames.push(...Object.values(this.decorations).map((s) => s.uid));
+		globalNames.push(...Object.values(this.timers).map((s) => s.uid));
 		globalNames.push(...this.points.map((s) => s.uid));
 
 		for (const triggerGroup of this.triggerGroups) {
@@ -305,9 +321,14 @@ export class PB3Map {
 			pb3SourceCode += decoration.serialize();
 		}
 
+		for (const timer of this.timers) {
+			pb3SourceCode += timer.serialize();
+		}
+
 		for (const triggerGroup of this.triggerGroups) {
 			pb3SourceCode += triggerGroup.serialize();
 		}
+
 		// -------------------------------
 		// 4. We append necessary footers (custom scripts, finalizeWorld, etc..)
 		// -------------------------------
@@ -478,6 +499,31 @@ export class PB3Map {
 		return entity;
 	};
 
+	private parsePB2Timers = (pb2Objects: ParsedPB2XMLObject[]): TimerEntity[] => {
+		const timers: TimerEntity[] = [];
+
+		for (const pb2Object of pb2Objects) {
+			const position: Position = {
+				x: Number(pb2Object.$.x ?? 0),
+				y: Number(pb2Object.$.y ?? 0),
+			};
+
+			timers.push({
+				uid: reformatPB2UID(pb2Object.$.uid),
+				position: position,
+				enabled: (pb2Object.$.enabled ?? 'true') === 'true',
+				maxCalls: parsePB2MaxCalls(pb2Object.$.maxcalls),
+				triggerToExecuteUID: parsePB2UIDReference(pb2Object.$.target),
+				delay: Number(pb2Object.$.delay ?? 30),
+				serialize() {
+					return serializeTimer(this);
+				},
+			});
+		}
+
+		return timers;
+	};
+
 	private parsePB2Triggers = (pb2Objects: ParsedPB2XMLObject[]): TriggerGroupEntity[] => {
 		const triggers: TriggerGroupEntity[] = [];
 
@@ -533,7 +579,7 @@ export class PB3Map {
 				position: position,
 				children: executeMethods,
 				arguments: [],
-				maxCalls: Number(pb2Object.$.maxcalls ?? 1),
+				maxCalls: parsePB2MaxCalls(pb2Object.$.maxcalls),
 				enabled: enabled,
 				serialize() {
 					return serializeTriggerGroup(this);

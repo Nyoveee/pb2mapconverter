@@ -170,6 +170,14 @@ export interface DecorationEntity extends EditorObject {
 	previewName: string;
 }
 
+export interface TimerEntity extends EditorObject {
+	position: Position;
+	maxCalls: number;
+	triggerToExecuteUID: string | null;
+	delay: number;
+	enabled: boolean;
+}
+
 // ===============================================
 // PB2 Objects (will be processed into the equivalent PB3 objects)
 // ===============================================

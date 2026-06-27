@@ -38,6 +38,16 @@ export const reformatPB2UID = (uid: string | undefined): string => {
 	return string.replace(/#/g, '').replace(/\*/g, '_');
 };
 
+export const parsePB2MaxCalls = (maxcalls: string | undefined): number => {
+	let calls = Number(maxcalls ?? 1);
+
+	if (calls === -1) {
+		calls = Infinity;
+	}
+
+	return calls;
+};
+
 // in PB2, references to other entities can either be undefined or '-1'.
 export const parsePB2UIDReference = (uid: string | undefined): string | null => {
 	const reformatedUid = reformatPB2UID(uid);
