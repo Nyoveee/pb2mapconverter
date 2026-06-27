@@ -1,3 +1,4 @@
+import { colorToPB2Hex, hexToColor } from '#utils/color.js';
 import { reformatPB2UID } from '#utils/types.js';
 
 const PB2TriggerActionToExecuteMethod = {
@@ -64,6 +65,41 @@ const PB2TriggerActionToExecuteMethod = {
 			return [argumentA, reformatPB2UID(argumentB)];
 		},
 	},
+	// Activate Timer 'A'
+	'25': {
+		functionName: 'ActivateTimer_PB2Preset',
+		arguments: (argumentA: string) => {
+			return [reformatPB2UID(argumentA)];
+		},
+	},
+	// Deactivate Timer 'A'
+	'26': {
+		functionName: 'DeactivateTimer_PB2Preset',
+		arguments: (argumentA: string) => {
+			return [reformatPB2UID(argumentA)];
+		},
+	},
+	// Set the frequency of calls of Timer 'A' to value 'B'
+	'27': {
+		functionName: 'SetTimerMaxCalls_PB2Preset',
+		arguments: (argumentA: string, argumentB: string) => {
+			return [reformatPB2UID(argumentA), argumentB];
+		},
+	},
+	// Reset current phase of between-call waiting of Timer 'A'
+	'44': {
+		functionName: 'ResetTimerElapsedTime_PB2Preset',
+		arguments: (argumentA: string) => {
+			return [reformatPB2UID(argumentA)];
+		},
+	},
+	// Set remain calls number of Timer 'A' to value 'B'.
+	'46': {
+		functionName: 'SetTimerMaxCalls_PB2Preset',
+		arguments: (argumentA: string, argumentB: string) => {
+			return [reformatPB2UID(argumentA), argumentB];
+		},
+	},
 	// Teleport all players from Region 'A' to Region 'B'
 	'30': {
 		functionName: 'TeleportAllPlayers_PB2Preset',
@@ -77,6 +113,45 @@ const PB2TriggerActionToExecuteMethod = {
 		functionName: 'TeleportAllPlayers_PB2Preset',
 		arguments: (argumentA: string, argumentB: string) => {
 			return [reformatPB2UID(argumentA), reformatPB2UID(argumentB)];
+		},
+	},
+	// Show text 'A' in chat with color 'B'
+	'42': {
+		functionName: 'SendChat_PB2Preset',
+		arguments: (argumentA: string, argumentB: string) => {
+			// argument B is either hexcode string, or an element in [0, 1, 2, 3, 4];
+			let speakerName;
+			let hexColor = 'new pb2HighRangeColor( 0xffffff )';
+			let messageHexColor = 'new pb2HighRangeColor( 0xffffff )';
+
+			switch (argumentB) {
+				case '0':
+					speakerName = `'EXOS'`;
+					hexColor = 'new pb2HighRangeColor( 0xaaddff )';
+					break;
+				case '1':
+					speakerName = `'Marine'`; // sorry i cba xD
+					hexColor = 'new pb2HighRangeColor( 0xaaffaa )';
+					break;
+				case '2':
+					speakerName = `'Noir Lime'`;
+					hexColor = 'new pb2HighRangeColor( 0xddffaa )';
+					break;
+				case '3':
+					speakerName = `'Proxy'`;
+					hexColor = 'new pb2HighRangeColor( 0xffaaff )';
+					break;
+				case '4':
+					speakerName = `'Civil Security'`;
+					hexColor = 'new pb2HighRangeColor( 0xffaaaa )';
+					break;
+				default:
+					speakerName = `''`;
+					messageHexColor = `new pb2HighRangeColor( ${colorToPB2Hex(hexToColor(argumentB))} )`;
+					break;
+			}
+
+			return [speakerName, `'${argumentA}'`, hexColor, messageHexColor];
 		},
 	},
 	// Move Region 'A' to Player 'B'
