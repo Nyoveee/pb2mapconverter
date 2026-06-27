@@ -9,8 +9,8 @@ export const serializeTriggerGroup = (triggerGroup: TriggerGroupEntity): string 
 	// ----------------
 	// Line 1..
 	// ----------------
-	const triggerArguments = triggerGroup.arguments.join(', ');
-	const codeOne = `${triggerGroup.uid} = ( ${triggerArguments} )=>`;
+	const triggerArguments = triggerGroup.arguments.length === 0 ? '' : ` ${triggerGroup.arguments.join(', ')} `;
+	const codeOne = `${triggerGroup.uid} = (${triggerArguments})=>`;
 	const editor_object_one = {
 		operation: 'layer_definition',
 		id: triggerGroup.uid,

@@ -198,7 +198,10 @@ export class PB3Map {
 
 		for (const triggerGroup of this.triggerGroups) {
 			globalNames.push(triggerGroup.uid);
-			globalNames.push(...triggerGroup.children.map((s) => s.uid));
+
+			for (const editorObject of triggerGroup.children) {
+				if (editorObject.uid !== '') globalNames.push(editorObject.uid);
+			}
 		}
 
 		if (globalNames.length > 0) {
@@ -257,10 +260,6 @@ export class PB3Map {
 			pb3SourceCode += point.serialize();
 		}
 
-		for (const triggerGroup of this.triggerGroups) {
-			pb3SourceCode += triggerGroup.serialize();
-		}
-
 		// We then serialize object instances..
 		for (const wall of this.walls) {
 			pb3SourceCode += wall.serialize();
@@ -306,6 +305,9 @@ export class PB3Map {
 			pb3SourceCode += decoration.serialize();
 		}
 
+		for (const triggerGroup of this.triggerGroups) {
+			pb3SourceCode += triggerGroup.serialize();
+		}
 		// -------------------------------
 		// 4. We append necessary footers (custom scripts, finalizeWorld, etc..)
 		// -------------------------------
@@ -488,14 +490,22 @@ export class PB3Map {
 
 			const enabled = (pb2Object.$.enabled ?? 'true') === 'true';
 
-			for (let i = 1; i <= 100; i++) {
-				const actionType = pb2Object.$[`actions_${i}_type`];
-				const argumentA = pb2Object.$[`actions_${i}_targetA`];
-				const argumentB = pb2Object.$[`actions_${i}_targetB`];
+			// We iterate through all properties of the trigger, getting all trigger actions.
+			// I assume that the PB2 xml always order trigger actions in ascending order.
+			for (const property in pb2Object.$) {
+				// Attempt to retrieve the set of trigger action information from property..
+				const result = /actions_(\d+)_type/.exec(property);
 
-				// no more trigger actions..
+				if (!result) {
+					continue;
+				}
+
+				const actionType = pb2Object.$[result[0]];
+				const argumentA = pb2Object.$[`actions_${result[1]}_targetA`];
+				const argumentB = pb2Object.$[`actions_${result[1]}_targetB`];
+
 				if (actionType === undefined || argumentA === undefined || argumentB === undefined) {
-					break;
+					continue;
 				}
 
 				const executeMethodProperties = getAssociatedExecuteMethodProperties(actionType, argumentA, argumentB);
@@ -506,7 +516,7 @@ export class PB3Map {
 				}
 
 				executeMethods.push({
-					uid: this.getUniqueUID('execute_method'),
+					uid: '',
 					position: {
 						x: position.x + EDITOR_ICON_WIDTH * (executeMethods.length + 1),
 						y: position.y,
