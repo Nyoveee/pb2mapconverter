@@ -58,6 +58,41 @@ const PB2TriggerActionToExecuteMethod = {
 			return [reformatPB2UID(argumentA), reformatPB2UID(argumentB)];
 		},
 	},
+	// Move Barrel 'A' to the Region 'B' (if Barrel not exploded)
+	'16': {
+		functionName: 'MoveEntityToPosition_PB2Preset',
+		arguments: (argumentA: string, argumentB: string) => {
+			return [reformatPB2UID(argumentA), reformatPB2UID(argumentB)];
+		},
+	},
+	// Deactivate Trigger 'A'
+	'19': {
+		functionName: 'DeactivateTrigger_PB2Preset',
+		arguments: (argumentA: string) => {
+			return [reformatPB2UID(argumentA)];
+		},
+	},
+	// Activate Trigger 'A'
+	'20': {
+		functionName: 'ActivateTrigger_PB2Preset',
+		arguments: (argumentA: string) => {
+			return [reformatPB2UID(argumentA)];
+		},
+	},
+	// Set number of remain calls of Trigger 'A' to 0
+	'21': {
+		functionName: 'SetTriggerMaxCalls_PB2Preset',
+		arguments: (argumentA: string) => {
+			return [reformatPB2UID(argumentA), '0'];
+		},
+	},
+	// Set number of remain calls of Trigger 'A' to value 'B'
+	'22': {
+		functionName: 'SetTriggerMaxCalls_PB2Preset',
+		arguments: (argumentA: string, argumentB: string) => {
+			return [reformatPB2UID(argumentA), argumentB];
+		},
+	},
 	// Make an explosion with power 'A' at Region 'B'
 	'24': {
 		functionName: 'MakeExplosion_PB2Preset',
@@ -115,6 +150,13 @@ const PB2TriggerActionToExecuteMethod = {
 			return [reformatPB2UID(argumentA), reformatPB2UID(argumentB)];
 		},
 	},
+	// Set game speed to 'A' frames per second (default game speed is 30. Does not influence rendering
+	'39': {
+		functionName: 'SetGameFPS_PB2Preset',
+		arguments: (argumentA: string) => {
+			return [argumentA];
+		},
+	},
 	// Show text 'A' in chat with color 'B'
 	'42': {
 		functionName: 'SendChat_PB2Preset',
@@ -154,6 +196,13 @@ const PB2TriggerActionToExecuteMethod = {
 			return [speakerName, `'${argumentA}'`, hexColor, messageHexColor];
 		},
 	},
+	// Set Character 'A' current and max hit points to value 'B'
+	'59': {
+		functionName: 'SetCharacterHealth_PB2Preset',
+		arguments: (argumentA: string, argumentB: string) => {
+			return [reformatPB2UID(argumentA), argumentB];
+		},
+	},
 	// Move Region 'A' to Player 'B'
 	'80': {
 		functionName: 'MoveRegionToPosition_PB2Preset',
@@ -180,6 +229,20 @@ const PB2TriggerActionToExecuteMethod = {
 		functionName: 'MoveRegionToMovable_PB2Preset',
 		arguments: (argumentA: string, argumentB: string) => {
 			return [reformatPB2UID(argumentA), reformatPB2UID(argumentB)];
+		},
+	},
+	// Execute Trigger 'A'
+	'99': {
+		functionName: 'ExecuteTrigger_PB2Preset',
+		arguments: (argumentA: string) => {
+			return [reformatPB2UID(argumentA)];
+		},
+	},
+	// Heal player 'A' by 'B' hit points
+	'255': {
+		functionName: 'HealChracter_PB2Preset',
+		arguments: (argumentA: string, argumentB: string) => {
+			return [reformatPB2UID(argumentA), argumentB];
 		},
 	},
 	// Move Region 'A' to Gun 'B'
