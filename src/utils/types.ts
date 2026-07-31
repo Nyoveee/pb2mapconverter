@@ -35,7 +35,13 @@ export const reformatPB2UID = (uid: string | undefined): string => {
 		return string;
 	}
 
-	return string.replace(/#/g, '').replace(/\*/g, '_');
+	let newUid = string.replace(/#/g, '').replace(/\*/g, '_');
+
+	if (/^\d/.test(newUid)) {
+		newUid = 'oleuid_' + newUid;
+	}
+
+	return newUid;
 };
 
 export const parsePB2MaxCalls = (maxcalls: string | undefined): number => {
