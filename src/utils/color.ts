@@ -47,14 +47,18 @@ export function colorToPB2Hex(color: Color): string {
 
 // assumes that hex is a valid hex representation.
 export const hexToColor = (hex: string): Color => {
-	// 1. Remove the './' character
-	const hexCode = hex.replace('./', '');
+	// 1. Remove the '#' prefix character
+	const hexCode = hex.replace('#', '');
+
+	const red = parseInt(hexCode.substring(0, 2), 16);
+	const green = parseInt(hexCode.substring(2, 4), 16);
+	const blue = parseInt(hexCode.substring(4, 6), 16);
 
 	// 2. Extract and convert channels to base-10 integers
 	return {
-		red: parseInt(hexCode.substring(0, 2), 16),
-		green: parseInt(hexCode.substring(4, 6), 16),
-		blue: parseInt(hexCode.substring(2, 4), 16),
+		red: isNaN(red) ? 255 : red,
+		green: isNaN(green) ? 255 : green,
+		blue: isNaN(blue) ? 255 : blue,
 	};
 };
 
