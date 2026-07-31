@@ -45,7 +45,7 @@ pb2mapconverter
 ├───src                     # Directory that hosts the server's backend code.
 │   ├───__tests__           # Unit testing
 │   ├── app.ts              # Main HTTP Express server logic, and Vercel's "entry" point
-│   ├── index.ts              # Main HTTP Express server logic, and local development entry point
+│   ├── index.ts            # Main HTTP Express server logic, and local development entry point
 │   └── ...                 # All of the other source code responsible for processing the .xml input
 ├───.gitignore              # Specifications for files/folders Git should ignore
 ├───.nvmrc                  # Defines the project's required Node.js version
