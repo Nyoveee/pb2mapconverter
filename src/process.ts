@@ -1,6 +1,6 @@
 import { parseStringPromise } from 'xml2js';
-import { PB3Map } from '#pb3Map.js';
-import type { XLMParseOutput } from '#utils/types.js';
+import { PB3Map } from './pb3Map.js';
+import type { XLMParseOutput } from './utils/types.js';
 
 // xml2js can't handle ampersand within an attribute value which isn't rare because pb2 can handle ampersands
 function escapeAmpersand(xml: string): string {

@@ -1,4 +1,4 @@
-import type { PB3Entity } from '#pb2Objects/entity-types.js';
+import type { PB3Entity } from '../pb2Objects/entity-types.js';
 import { toPB3String } from './serialize.js';
 
 export const serializePB3Entity = (pb3Entity: PB3Entity): string => {

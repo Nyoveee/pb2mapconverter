@@ -1,5 +1,5 @@
-import { colorToPB2Hex, hexToColor } from '#utils/color.js';
-import { reformatPB2UID } from '#utils/types.js';
+import { colorToPB2Hex, hexToColor } from '../utils/color.js';
+import { reformatPB2UID } from '../utils/types.js';
 
 const PB2TriggerActionToExecuteMethod = {
 	// Force Movable ‘A’ to Region ‘B’

@@ -2,7 +2,7 @@ import fs from 'fs/promises';
 import path from 'node:path';
 import { describe, expect, test, vi } from 'vitest';
 
-import convertPB2XMLFile from '#process.js';
+import convertPB2XMLFile from '../process.js';
 
 const retrieveMapContent = async (mapName: string) => {
 	const testMapDirectory = path.join(process.cwd(), 'src', '__tests__', 'maps');

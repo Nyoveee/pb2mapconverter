@@ -1,4 +1,4 @@
-import type { DecorationEntity } from '#pb2Objects/entity-types.js';
+import type { DecorationEntity } from '../pb2Objects/entity-types.js';
 import { toPB3String } from './serialize.js';
 
 export const serializeDecoration = (decoration: DecorationEntity): string => {

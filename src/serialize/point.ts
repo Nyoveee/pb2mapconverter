@@ -1,4 +1,4 @@
-import type { PointEntity } from '#pb2Objects/entity-types.js';
+import type { PointEntity } from '../pb2Objects/entity-types.js';
 import { toPB3String } from './serialize.js';
 
 export const serializePoint = (entity: PointEntity): string => {

@@ -1,4 +1,4 @@
-import type { TimerEntity } from '#pb2Objects/entity-types.js';
+import type { TimerEntity } from '../pb2Objects/entity-types.js';
 import { toPB3String } from './serialize.js';
 
 export const serializeTimer = (timer: TimerEntity): string => {

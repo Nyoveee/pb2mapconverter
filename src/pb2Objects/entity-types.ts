@@ -1,5 +1,5 @@
-import type { Color } from '#utils/color.js';
-import type { Geometry, Position, Side } from '#utils/types.js';
+import type { Color } from '../utils/color.js';
+import type { Geometry, Position, Side } from '../utils/types.js';
 import type { SurfaceInfo } from './surface.js';
 
 // The base class which rules them all..

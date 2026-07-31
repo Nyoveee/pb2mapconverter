@@ -47,8 +47,8 @@ export function colorToPB2Hex(color: Color): string {
 
 // assumes that hex is a valid hex representation.
 export const hexToColor = (hex: string): Color => {
-	// 1. Remove the '#' character
-	const hexCode = hex.replace('#', '');
+	// 1. Remove the './' character
+	const hexCode = hex.replace('./', '');
 
 	// 2. Extract and convert channels to base-10 integers
 	return {

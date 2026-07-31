@@ -1,4 +1,4 @@
-import type { Vector } from '#pb2Objects/entity-types.js';
+import type { Vector } from '../pb2Objects/entity-types.js';
 import { toPB3String } from './serialize.js';
 
 export const serializeVector = (vector: Vector): string => {

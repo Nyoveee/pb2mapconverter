@@ -1,4 +1,4 @@
-import type { LiquidKindEntity } from '#pb2Objects/entity-types.js';
+import type { LiquidKindEntity } from '../pb2Objects/entity-types.js';
 import { toPB3String } from './serialize.js';
 
 const acidColor = '0x66ff00';

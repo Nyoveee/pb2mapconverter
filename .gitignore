@@ -154,3 +154,5 @@ vite.config.ts.timestamp-*
 
 # Keep shared settings (only if free of local machine paths)
 !.vscode/settings.json
+.vercel
+.env*

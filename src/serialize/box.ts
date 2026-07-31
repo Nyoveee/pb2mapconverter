@@ -13,8 +13,8 @@
     5. Region
 */
 
-import type { BackgroundEntity, MovableEntity, WallEntity, WaterEntity, RegionEntity } from '#pb2Objects/entity-types.js';
-import { getRegionSpecificProperties } from '#pb2Objects/special-values.js';
+import type { BackgroundEntity, MovableEntity, WallEntity, WaterEntity, RegionEntity } from '../pb2Objects/entity-types.js';
+import { getRegionSpecificProperties } from '../pb2Objects/special-values.js';
 import { toPB3String } from './serialize.js';
 
 export const serializeBox = ({

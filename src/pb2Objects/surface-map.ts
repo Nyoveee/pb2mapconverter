@@ -2,9 +2,9 @@
 // Mapping PB2's property to PB3..
 // ===============================================
 
-import { serializeSurface } from '#serialize/surface.js';
-import { blackColor, whiteColor, type Color } from '#utils/color.js';
-import type { Position, WorldBoundary } from '#utils/types.js';
+import { serializeSurface } from '../serialize/surface.js';
+import { blackColor, whiteColor, type Color } from '../utils/color.js';
+import type { Position, WorldBoundary } from '../utils/types.js';
 import type { SurfaceEntity } from './entity-types.js';
 import { EDITOR_ICON_WIDTH, iconHeightGap } from './special-values.js';
 import { SurfaceType, type SurfaceInfo } from './surface.js';

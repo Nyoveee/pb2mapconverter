@@ -1,4 +1,4 @@
-import type { GunEntity } from '#pb2Objects/entity-types.js';
+import type { GunEntity } from '../pb2Objects/entity-types.js';
 import { toPB3String } from './serialize.js';
 
 // todo upgrade levels

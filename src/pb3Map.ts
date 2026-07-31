@@ -13,7 +13,7 @@ import {
 	type Position,
 	type WorldBoundary,
 	type XLMParseOutput,
-} from '#utils/types.js';
+} from './utils/types.js';
 import type {
 	SurfaceEntity,
 	LiquidKindEntity,
@@ -37,22 +37,22 @@ import type {
 	PB3Entity,
 	DecorationEntity,
 	TimerEntity,
-} from '#pb2Objects/entity-types.js';
-import { getBackgroundKey, type BackgroundIdentifierStr } from '#pb2Objects/surface.js';
-import { getLiquidKindKey, type LiquidIdentifierStr } from '#pb2Objects/liquid.js';
+} from './pb2Objects/entity-types.js';
+import { getBackgroundKey, type BackgroundIdentifierStr } from './pb2Objects/surface.js';
+import { getLiquidKindKey, type LiquidIdentifierStr } from './pb2Objects/liquid.js';
 
-import { getCenterPosition, parseGeometry, updateWorldBoundary } from '#utils/math.js';
-import { PB3StandardFooter, PB3StandardMapHeader, serializeForceRegenScript, serializeMapConfigureScript } from '#serialize/serialize.js';
-import { serializeBox } from '#serialize/box.js';
-import { serializeLamp } from '#serialize/lamp.js';
-import { serializeGun } from '#serialize/gun.js';
-import { doubleColor, hexToColor, isValidHexCode, whiteColor, type Color } from '#utils/color.js';
-import { serializeLiquidKind } from '#serialize/liquid.js';
-import { createPB2BackgroundSurface, createPB2MovableSurface_isVisible, createPB2WallSurface, pb2ShadowBackgroundMaterial } from '#pb2Objects/surface-map.js';
-import { serializeTeam } from '#serialize/team.js';
-import { serializeSkin } from '#serialize/skin.js';
-import { serializeAIPreset } from '#serialize/ai-preset.js';
-import { serializeCharacter } from '#serialize/character.js';
+import { getCenterPosition, parseGeometry, updateWorldBoundary } from './utils/math.js';
+import { PB3StandardFooter, PB3StandardMapHeader, serializeForceRegenScript, serializeMapConfigureScript } from './serialize/serialize.js';
+import { serializeBox } from './serialize/box.js';
+import { serializeLamp } from './serialize/lamp.js';
+import { serializeGun } from './serialize/gun.js';
+import { doubleColor, hexToColor, isValidHexCode, whiteColor, type Color } from './utils/color.js';
+import { serializeLiquidKind } from './serialize/liquid.js';
+import { createPB2BackgroundSurface, createPB2MovableSurface_isVisible, createPB2WallSurface, pb2ShadowBackgroundMaterial } from './pb2Objects/surface-map.js';
+import { serializeTeam } from './serialize/team.js';
+import { serializeSkin } from './serialize/skin.js';
+import { serializeAIPreset } from './serialize/ai-preset.js';
+import { serializeCharacter } from './serialize/character.js';
 import {
 	EDITOR_ICON_HEIGHT,
 	EDITOR_ICON_WIDTH,
@@ -66,17 +66,17 @@ import {
 	PB2SkinToPB3,
 	PUSHER,
 	teamNames,
-} from '#pb2Objects/special-values.js';
-import { serializePoint } from '#serialize/point.js';
-import { getGrenadeSpawnPointUID, serializeSpawnGrenadesScript } from '#serialize/grenade.js';
-import { serializeUseButton } from '#serialize/useButton.js';
-import { serializeVector } from '#serialize/vector.js';
-import { serializeExecuteMethod } from '#serialize/executeMethod.js';
-import { serializeTriggerGroup } from '#serialize/triggerGroup.js';
-import { serializePB3Entity } from '#serialize/pb3Entity.js';
-import { serializeDecoration } from '#serialize/decoration.js';
-import { getAssociatedExecuteMethodProperties } from '#pb2Objects/trigger-values.js';
-import { serializeTimer } from '#serialize/timer.js';
+} from './pb2Objects/special-values.js';
+import { serializePoint } from './serialize/point.js';
+import { getGrenadeSpawnPointUID, serializeSpawnGrenadesScript } from './serialize/grenade.js';
+import { serializeUseButton } from './serialize/useButton.js';
+import { serializeVector } from './serialize/vector.js';
+import { serializeExecuteMethod } from './serialize/executeMethod.js';
+import { serializeTriggerGroup } from './serialize/triggerGroup.js';
+import { serializePB3Entity } from './serialize/pb3Entity.js';
+import { serializeDecoration } from './serialize/decoration.js';
+import { getAssociatedExecuteMethodProperties } from './pb2Objects/trigger-values.js';
+import { serializeTimer } from './serialize/timer.js';
 
 export class PB3Map {
 	// ============================================================================================

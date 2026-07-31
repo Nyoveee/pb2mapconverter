@@ -10,7 +10,7 @@
     Therefore, for each unique combination of background material + color multiplier, we need to create a surface for it.
 */
 
-import type { Color } from '#utils/color.js';
+import type { Color } from '../utils/color.js';
 
 export type ValidSurfaceTerrain = 'Ground' | 'Grass' | 'Sand' | 'Cliff' | 'Snow' | 'Black' | 'Red' | 'Green' | 'Blue';
 

@@ -1,4 +1,4 @@
-import type { TeamEntity } from '#pb2Objects/entity-types.js';
+import type { TeamEntity } from '../pb2Objects/entity-types.js';
 import { toPB3String } from './serialize.js';
 
 const DEFAULT_EDITOR_OBJECT = {

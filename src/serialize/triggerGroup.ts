@@ -2,7 +2,7 @@
  * A trigger group is essientially a function with arguments. The function body are it's children.
  * A serialized trigger group source code is multi-line, so we need to account for that.
  */
-import type { TriggerGroupEntity } from '#pb2Objects/entity-types.js';
+import type { TriggerGroupEntity } from '../pb2Objects/entity-types.js';
 import { toPB3String } from './serialize.js';
 
 export const serializeTriggerGroup = (triggerGroup: TriggerGroupEntity): string => {

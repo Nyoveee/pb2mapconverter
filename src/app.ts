@@ -8,12 +8,11 @@ import type { Multer } from 'multer';
 import express from 'express';
 import multer from 'multer';
 
-import processPB2XMLFile from '#process.js';
+import processPB2XMLFile from './process.js';
 
 const app = express();
 const upload: Multer = multer({ storage: multer.memoryStorage() });
 
-// This is a static web application.
 app.use(express.static('public'));
 
 // API endpoint to handle conversion..

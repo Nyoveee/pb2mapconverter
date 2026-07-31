@@ -1,7 +1,7 @@
-import type { SurfaceEntity } from '#pb2Objects/entity-types.js';
-import { SurfaceType, type SurfaceT } from '#pb2Objects/surface.js';
+import type { SurfaceEntity } from '../pb2Objects/entity-types.js';
+import { SurfaceType, type SurfaceT } from '../pb2Objects/surface.js';
 
-import { blackColor, colorToPB2Hex, multiplyColor, pb2BlueColor, pb2GreenColor, pb2RedColor, type Color } from '#utils/color.js';
+import { blackColor, colorToPB2Hex, multiplyColor, pb2BlueColor, pb2GreenColor, pb2RedColor, type Color } from '../utils/color.js';
 import { toPB3String } from './serialize.js';
 
 export const serializeSurface = (surface: SurfaceEntity, surfaceType: SurfaceT) => {
@@ -48,8 +48,7 @@ const _serializeSurface = (surface: SurfaceEntity, toGenerateTerrain: boolean, c
 	// for avoiding ditto mismatch
 	const includeName = toGenerateTerrain;
 	const includeFoliageTemplate = toGenerateTerrain && surfaceTerrain === 'Grass';
-	const includeHasCliff =
-		toGenerateTerrain && (surfaceTerrain === 'Ground' || surfaceTerrain === 'Grass' || surfaceTerrain === 'Sand' || surfaceTerrain === 'Cliff');
+	const includeHasCliff = toGenerateTerrain && (surfaceTerrain === 'Ground' || surfaceTerrain === 'Grass' || surfaceTerrain === 'Sand' || surfaceTerrain === 'Cliff');
 	const includeHasGround = toGenerateTerrain && (surfaceTerrain === 'Grass' || surfaceTerrain === 'Sand' || surfaceTerrain === 'Cliff');
 	const includeImpactScale = is_wall;
 
