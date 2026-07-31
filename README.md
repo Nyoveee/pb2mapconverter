@@ -11,7 +11,7 @@ It's a simple Express JS typescript web application, with vanilla HTML, CSS and 
 
 ### Limitations
 
-1. There's no one to one correlation between many of the PB2 walls and PB3 objects, like walls, backgrounds, guns and vehicles. Substitutes have to be made.
+1. There's no one to one correlation between many of the PB2 and PB3 objects, like walls, backgrounds, guns and vehicles. Substitutes have to be made.
 2. Some background color multiplier may look different. This is because of how background multiplier works in PB2 vs PB3. Color multiplier in PB2 are twice as effective, which means a `#FFFFFF` doubles the color value of a given background. PB3's multiplies it by 1 instead of 2, and therefore any color multiplier above `#808080` in PB2 will appear duller in PB3.
 3. Not all trigger actions are supported, only a very limited subset are supported.
 4. There isn't a way to smoothly reuse the existing players for COOP and DM like in PB2. In the future, custom modules can be developed to support this but for now this is not implemented.
@@ -45,7 +45,7 @@ pb2mapconverter
 ├───src                     # Directory that hosts the server's backend code.
 │   ├───__tests__           # Unit testing
 │   ├── app.ts              # Main HTTP Express server logic, and Vercel's "entry" point
-│   ├── index.ts              # Main HTTP Express server logic, and local development entry point
+│   ├── index.ts            # Main HTTP Express server logic, and local development entry point
 │   └── ...                 # All of the other source code responsible for processing the .xml input
 ├───.gitignore              # Specifications for files/folders Git should ignore
 ├───.nvmrc                  # Defines the project's required Node.js version
