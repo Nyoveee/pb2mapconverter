@@ -22,7 +22,10 @@
 		"url": "git+https://github.com/Nyoveee/pb2mapconverter.git"
 	},
 	"imports": {
-		"#*": "./src/*"
+		"#*.js": {
+			"development": "./src/*.ts",
+			"default": "./dist/*.js"
+		}
 	},
 	"keywords": [],
 	"author": "",
@@ -35,6 +38,7 @@
 	"dependencies": {
 		"express": "^5.2.1",
 		"multer": "^2.1.1",
+		"serverless-http": "^4.0.0",
 		"xml2js": "^0.6.2"
 	},
 	"devDependencies": {

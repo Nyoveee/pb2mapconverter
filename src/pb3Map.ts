@@ -367,7 +367,11 @@ export class PB3Map {
 
 	private createSkinsTeamsAndAIPresets = () => {
 		for (const gun of this.guns) {
-			gun.teamUID = this.getOrCreateTeam(gun.team).uid;
+			if (gun.team === -1) {
+				gun.teamUID = null;
+			} else {
+				gun.teamUID = this.getOrCreateTeam(gun.team).uid;
+			}
 		}
 
 		for (const character of this.characters) {
@@ -689,8 +693,7 @@ export class PB3Map {
 		let grenadeCount = 0;
 
 		for (const { $: props } of pb2Objects) {
-			const teamNummber = Number(props.command ?? -1);
-			const isAnyTeam = teamNummber === -1;
+			const teamNumber = Number(props.command ?? -1);
 			const pb2Model = props.model ?? ''; // default = omit
 			const isGrenade = grenadeModels.includes(pb2Model);
 
@@ -719,9 +722,9 @@ export class PB3Map {
 				position,
 				pb2Model,
 				pb3Model,
-				team: teamNummber,
+				team: teamNumber,
 				upgrade: Number(props.upg ?? 0),
-				teamUID: isAnyTeam ? null : this.getOrCreateTeam(teamNummber).uid,
+				teamUID: null,
 				serialize() {
 					return serializeGun(this);
 				},
