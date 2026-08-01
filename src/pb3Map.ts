@@ -5,12 +5,15 @@
     triggers, etc..
 */
 import {
+	ALLOWED_TRIGGER_REFERENCES,
+	isExecuteMethod,
 	parsePB2MaxCalls,
 	parsePB2UIDReference,
 	reformatPB2UID,
 	type BooleanAsString,
 	type ParsedPB2XMLObject,
 	type Position,
+	type TriggerReferenceType,
 	type WorldBoundary,
 	type XLMParseOutput,
 } from './utils/types.js';
@@ -182,6 +185,9 @@ export class PB3Map {
 		// Create all assets related to characters and guns (skins, teams and AI presets).
 		this.createSkinsTeamsAndAIPresets();
 
+		// Resolve all index based references.
+		this.resolveUIDIndexReference();
+
 		// Create trigger groups that attempt to emulate PB2 pushers via sub push force execute method.
 		this.createPusherTriggerGroups();
 	}
@@ -193,7 +199,7 @@ export class PB3Map {
 		// -------------------------------
 		// 1. We declare all UID.. this is the `global vars declaration` section
 		// -------------------------------
-		const globalNames: string[] = [];
+		let globalNames: string[] = [];
 		globalNames.push(...Object.values(this.wallSurfaces).map((s) => s.uid));
 		globalNames.push(...Object.values(this.backgroundSurfaces).map((s) => s.uid));
 		globalNames.push(...Object.values(this.movableSurfaces).map((s) => s.uid));
@@ -219,6 +225,9 @@ export class PB3Map {
 				if (editorObject.uid !== '') globalNames.push(editorObject.uid);
 			}
 		}
+
+		// remove all empty UIDs. (empty string are falsy)
+		globalNames = globalNames.filter(Boolean);
 
 		if (globalNames.length > 0) {
 			pb3SourceCode += `var ${globalNames.join(', ')};`;
@@ -517,7 +526,7 @@ export class PB3Map {
 				position: position,
 				enabled: (pb2Object.$.enabled ?? 'true') === 'true',
 				maxCalls: parsePB2MaxCalls(pb2Object.$.maxcalls),
-				triggerToExecuteUID: parsePB2UIDReference(pb2Object.$.target),
+				triggerToExecuteUID: parsePB2UIDReference(pb2Object.$.target, 'trigger'),
 				delay: Number(pb2Object.$.delay ?? 30),
 				serialize() {
 					return serializeTimer(this);
@@ -594,6 +603,61 @@ export class PB3Map {
 		return triggers;
 	};
 
+	private resolveUIDIndexReference = () => {
+		const resolveUID = (argument: string) => {
+			// We need to parse our sentinel references which indicates that they are index references..
+			const typePattern = ALLOWED_TRIGGER_REFERENCES.join('|');
+			const sentinelRegex = new RegExp(`^@(?<type>${typePattern})_(?<reference>\\d+)$`);
+
+			const match = argument.match(sentinelRegex);
+
+			if (!match?.groups) {
+				return argument;
+			}
+
+			// Safe type assertion because the dynamic regex matches the array items exactly
+			const type = match.groups.type as TriggerReferenceType;
+
+			// eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- Regex group match pattern guarantees non null-ness.
+			const reference = match.groups.reference!;
+			const index = Number(reference);
+
+			switch (type) {
+				// Most common cases..
+				case 'movable':
+					return this.movables[index]?.uid ?? '0';
+				case 'region':
+					return this.regions[index]?.uid ?? '0';
+				case 'player':
+					return this.characters[index]?.uid ?? '0';
+				case 'gun':
+					return this.guns[index]?.uid ?? '0';
+				case 'trigger':
+					return this.triggerGroups[index]?.uid ?? '0';
+				case 'timer':
+					return this.timers[index]?.uid ?? '0';
+			}
+		};
+
+		for (const region of this.regions) {
+			region.triggerToExecuteUID = region.triggerToExecuteUID ? resolveUID(region.triggerToExecuteUID) : null;
+		}
+
+		for (const useButton of this.useButtons) {
+			useButton.triggerToExecuteUID = useButton.triggerToExecuteUID ? resolveUID(useButton.triggerToExecuteUID) : null;
+		}
+
+		for (const trigger of this.triggerGroups) {
+			for (const child of trigger.children) {
+				if (!isExecuteMethod(child)) {
+					continue;
+				}
+
+				child.arguments = child.arguments.map((argument) => resolveUID(argument));
+			}
+		}
+	};
+
 	// Parses a given PB2 xml object into PB2 wall.
 	// When parsing PB2 walls, also keep track of world boundary and materials.
 	private parsePB2Walls = (pb2Objects: ParsedPB2XMLObject[]): WallEntity[] => {
@@ -657,7 +721,7 @@ export class PB3Map {
 				textureYOffset: Number(pb2Object.$.v ?? 0),
 				drawInFront: Boolean(pb2Object.$.f ?? false),
 				surfaceUID: 'null',
-				attachedMovableUID: parsePB2UIDReference(pb2Object.$.a),
+				attachedMovableUID: parsePB2UIDReference(pb2Object.$.a, 'movable'),
 				colorMultiplier: colorMultiplier,
 				serialize() {
 					return serializeBox({ kind: 'background', entity: this });
@@ -774,7 +838,7 @@ export class PB3Map {
 				visible: visible,
 				speed: speed,
 				surfaceUID: 'null',
-				attachedMovableUID: parsePB2UIDReference(pb2Object.$.attach),
+				attachedMovableUID: parsePB2UIDReference(pb2Object.$.attach, 'movable'),
 				serialize() {
 					return serializeBox({ kind: 'movable', entity: this });
 				},
@@ -792,8 +856,8 @@ export class PB3Map {
 		for (const pb2Object of pb2Objects) {
 			const geometry = parseGeometry(pb2Object);
 			let activationClause = Number(pb2Object.$.use_on ?? 0);
-			let triggerToExecuteUID = parsePB2UIDReference(pb2Object.$.use_target);
-			const attachedMovableUID = parsePB2UIDReference(pb2Object.$.attach);
+			let triggerToExecuteUID = parsePB2UIDReference(pb2Object.$.use_target, 'trigger');
+			const attachedMovableUID = parsePB2UIDReference(pb2Object.$.attach, 'movable');
 
 			// If a PB2 region has a use button, we will create a USE button PB3 entity, inheriting the properties from the original region/
 			// The other region will be preserved as it may be used by other triggers. @todo: make it configurable..
@@ -912,7 +976,7 @@ export class PB3Map {
 				dy: pushY,
 				stabliityDamage: stabilityDamage,
 				damage: damage,
-				attachedMovableUID: parsePB2UIDReference(pb2Object.$.attach),
+				attachedMovableUID: parsePB2UIDReference(pb2Object.$.attach, 'movable'),
 			});
 
 			updateWorldBoundary(this.worldBoundary, geometry);

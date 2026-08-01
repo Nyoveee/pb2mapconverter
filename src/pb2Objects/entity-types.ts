@@ -3,7 +3,7 @@ import type { Geometry, Position, Side } from '../utils/types.js';
 import type { SurfaceInfo } from './surface.js';
 
 // The base class which rules them all..
-interface EditorObject {
+export interface EditorObject {
 	uid: string;
 	serialize(coordinateOffset?: { minX: number; minY: number }): string;
 }
