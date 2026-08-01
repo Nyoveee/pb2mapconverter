@@ -45,7 +45,7 @@ import { getBackgroundKey, type BackgroundIdentifierStr } from './pb2Objects/sur
 import { getLiquidKindKey, type LiquidIdentifierStr } from './pb2Objects/liquid.js';
 
 import { getCenterPosition, parseGeometry, updateWorldBoundary } from './utils/math.js';
-import { PB3StandardFooter, PB3StandardMapHeader, serializeForceRegenScript, serializeMapConfigureScript } from './serialize/serialize.js';
+import { makeScript, PB3StandardFooter, PB3StandardMapHeader, serializeForceRegenScript, serializeMapConfigureScript } from './serialize/serialize.js';
 import { serializeBox } from './serialize/box.js';
 import { serializeLamp } from './serialize/lamp.js';
 import { serializeGun } from './serialize/gun.js';
@@ -247,7 +247,6 @@ export class PB3Map {
 		let scriptIndex = 0;
 
 		pb3SourceCode += serializeMapConfigureScript(minX + EDITOR_ICON_WIDTH * scriptIndex++, minY + iconHeightGap.script);
-
 		// -------------------------------
 		// 3. We start serializing the individual game objects..
 		// -------------------------------
@@ -345,9 +344,11 @@ export class PB3Map {
 		pb3SourceCode += serializeForceRegenScript(minX + EDITOR_ICON_WIDTH * scriptIndex++, minY + iconHeightGap.script);
 
 		if (this.hasGrenades) {
-			// eslint-disable-next-line no-useless-assignment -- leaving the increment pattern on scriptIndex here for subsequent proceeding code.
 			pb3SourceCode += serializeSpawnGrenadesScript(minX + EDITOR_ICON_WIDTH * scriptIndex++, minY + iconHeightGap.script);
 		}
+
+		// eslint-disable-next-line no-useless-assignment -- leaving the increment pattern on scriptIndex here for subsequent proceeding code.
+		pb3SourceCode += this.createMovableSpeedScript(minX + EDITOR_ICON_WIDTH * scriptIndex++, minY + iconHeightGap.script);
 
 		pb3SourceCode += PB3StandardFooter;
 		return pb3SourceCode;
@@ -601,6 +602,19 @@ export class PB3Map {
 		}
 
 		return triggers;
+	};
+
+	private createMovableSpeedScript = (x: number, y: number) => {
+		let code = `
+/* 
+    This script sets all the initial speed of all movables.
+*/
+`;
+		for (const movable of this.movables) {
+			code += `${movable.uid}.SetSpeed(${movable.speed});\n`;
+		}
+
+		return makeScript(x, y, code);
 	};
 
 	private resolveUIDIndexReference = () => {
