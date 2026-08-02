@@ -434,6 +434,11 @@ export const getRegionSpecificProperties = (region: RegionEntity) => {
 
 	const react_to_entities = [CHARACTER_IN_A_VEHICLE].includes(region.activationClause);
 
+	const activationMethod =
+		region.activationClause === MOVABLE
+			? { onEnter: `${region.triggerToExecuteUID}`, onLeave: 'null', onSubstep: 'null' }
+			: { onEnter: 'null', onLeave: 'null', onSubstep: `${region.triggerToExecuteUID}` };
+
 	return {
 		increased_accuracy: 'false',
 		react_to_ragdolls: `${react_to_ragdolls}`,
@@ -444,9 +449,7 @@ export const getRegionSpecificProperties = (region: RegionEntity) => {
 		react_to_shields: `${react_to_shields}`,
 		react_to_entities: `${react_to_entities}`,
 		react_to_exact_movables: `${react_to_exact_movables}`,
-		onEnter: 'null',
-		onLeave: 'null',
-		onSubstep: `${region.triggerToExecuteUID}`,
+		...activationMethod,
 	};
 };
 
