@@ -28,7 +28,6 @@ const DEFAULT_EDITOR_OBJECT = {
 	can_breathe_in_toxic_clouds: 'false',
 	hmax_damage_multiplier: 'undefined',
 	regen_module: 'pb2StyleRegen.style_delayed_speedup',
-	onDeath: 'null',
 	drop_guns_on_death: 'pb2Character.DROP_ALWAYS',
 	drop_grenades_on_death: 'pb2Character.DROP_WHEN_INTENDED_ONLY',
 	enforce_skin_limitations: 'false',
@@ -71,7 +70,8 @@ export const serializeCharacter = (entity: CharacterEntity): string => {
         use_skin_properties: false, 
         player_controllable: ${entity.isPlayer}, 
         ai_preset: ${entity.aiPresetUID}, 
-        side: ${entity.direction} 
+        side: ${entity.direction},
+		onDeath: ${entity.triggerToExecuteOnDeathUID ? `(...a)=>${entity.triggerToExecuteOnDeathUID}(...a)` : 'null'}
     });
     `;
 
@@ -94,6 +94,7 @@ export const serializeCharacter = (entity: CharacterEntity): string => {
 		player_controllable: entity.isPlayer.toString(),
 		ai_preset: entity.aiPresetUID ?? 'null',
 		side: entity.direction.toString(),
+		onDeath: `${entity.triggerToExecuteOnDeathUID}`,
 	};
 
 	return toPB3String({ code: code, jsonObject: JSON.stringify(editor_object) });

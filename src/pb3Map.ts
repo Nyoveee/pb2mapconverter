@@ -670,6 +670,10 @@ export class PB3Map {
 			}
 		};
 
+		for (const character of this.characters) {
+			character.triggerToExecuteOnDeathUID = character.triggerToExecuteOnDeathUID ? resolveUID(character.triggerToExecuteOnDeathUID) : null;
+		}
+
 		for (const region of this.regions) {
 			region.triggerToExecuteUID = region.triggerToExecuteUID ? resolveUID(region.triggerToExecuteUID) : null;
 		}
@@ -1124,6 +1128,7 @@ export class PB3Map {
 				teamUID: 'null',
 				skinUID: 'null',
 				aiPresetUID: null,
+				triggerToExecuteOnDeathUID: parsePB2UIDReference(props.ondeath, 'trigger'),
 				serialize() {
 					return serializeCharacter(this);
 				},

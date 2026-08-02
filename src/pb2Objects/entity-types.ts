@@ -133,6 +133,7 @@ export interface CharacterEntity extends EditorObject {
 	hpMax: number;
 	direction: Side;
 	isPlayer: boolean;
+	triggerToExecuteOnDeathUID: string | null;
 
 	// pb2 properties..
 	pb2SkinId: number;
