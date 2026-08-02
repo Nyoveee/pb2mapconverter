@@ -52,7 +52,7 @@ export const serializePB3Entity = (pb3Entity: PB3Entity): string => {
 					strength: '0',
 					mass_cap_scale: '1',
 					cooldown_duration_scale: '1',
-					can_be_damaged: 'true',
+					can_be_damaged: 'false',
 				}
 			: {}),
 	};

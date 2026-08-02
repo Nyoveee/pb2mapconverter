@@ -141,45 +141,45 @@ export class PB3Map {
 			// Using some form of function object map *may* be more elegant (need to factor in dealing with types).. but let's do this for now.
 			switch (pb2ObjectName) {
 				case 'box':
-					this.walls = this.parsePB2Walls(parsedPB2Objects);
+					this.walls.push(...this.parsePB2Walls(parsedPB2Objects));
 					break;
 				case 'bg':
-					this.backgrounds = this.parsePB2Background(parsedPB2Objects);
+					this.backgrounds.push(...this.parsePB2Background(parsedPB2Objects));
 					break;
 				case 'lamp':
-					this.lamps = this.parsePB2Lamp(parsedPB2Objects);
+					this.lamps.push(...this.parsePB2Lamp(parsedPB2Objects));
 					break;
 				case 'gun':
-					this.guns = this.parsePB2Gun(parsedPB2Objects);
+					this.guns.push(...this.parsePB2Gun(parsedPB2Objects));
 					break;
 				case 'water':
-					this.waters = this.parsePB2Water(parsedPB2Objects);
+					this.waters.push(...this.parsePB2Water(parsedPB2Objects));
 					break;
 				case 'door':
-					this.movables = this.parsePB2Movable(parsedPB2Objects);
+					this.movables.push(...this.parsePB2Movable(parsedPB2Objects));
 					break;
 				case 'player':
 				case 'enemy':
 					this.characters.push(...this.parsePB2Character(parsedPB2Objects, pb2ObjectName === 'player'));
 					break;
 				case 'region':
-					this.regions = this.parsePB2Region(parsedPB2Objects);
+					this.regions.push(...this.parsePB2Region(parsedPB2Objects));
 					break;
 				case 'pushf':
-					this.pushers = this.parsePB2Pusher(parsedPB2Objects);
+					this.pushers.push(...this.parsePB2Pusher(parsedPB2Objects));
 					break;
 				case 'vehicle':
 				case 'barrel':
 					this.pb3Entities.push(...this.parsePB3Entity(parsedPB2Objects));
 					break;
 				case 'decor':
-					this.decorations = this.parseDecorations(parsedPB2Objects);
+					this.decorations.push(...this.parseDecorations(parsedPB2Objects));
 					break;
 				case 'trigger':
-					this.triggerGroups = this.parsePB2Triggers(parsedPB2Objects);
+					this.triggerGroups.push(...this.parsePB2Triggers(parsedPB2Objects));
 					break;
 				case 'timer':
-					this.timers = this.parsePB2Timers(parsedPB2Objects);
+					this.timers.push(...this.parsePB2Timers(parsedPB2Objects));
 					break;
 				default:
 			}
@@ -962,6 +962,13 @@ export class PB3Map {
 
 		for (const pb2Object of pb2Objects) {
 			const model = pb2Object.$.model ?? 'null';
+
+			// parse antigravity as entity instead..
+			if (model === 'antigravity' && this.options.antigravity === 'Entity') {
+				this.pb3Entities.push(...this.parsePB3Entity([pb2Object]));
+				continue;
+			}
+
 			const properties = PB2DecorToPB3Decor[model];
 
 			// Either custom decoration or some unsupported decorations..

@@ -182,8 +182,8 @@ const PB2VehicleModelToPB3Entity = {
 	bar_orange: { type: 'pb2Entity.TYPE_BARREL ', styleId: 'pb2EntityBarrel.STYLE_ID_YELLOW', scale: 1 },
 	bar_blue: { type: 'pb2Entity.TYPE_BARREL ', styleId: 'pb2EntityBarrel.STYLE_ID_BLUE', scale: 1 },
 	bar_red: { type: 'pb2Entity.TYPE_BARREL ', styleId: 'pb2EntityBarrel.STYLE_ID_RED', scale: 1 },
-	antigravity: { type: 'pb2Entity.TYPE_ANTIGRAVITY ', styleId: 'pb2EntityBarrel.STYLE_ID_RED', scale: 1 },
-	antigravity0: { type: 'pb2Entity.TYPE_ANTIGRAVITY ', styleId: 'pb2EntityBarrel.STYLE_ID_RED', scale: 1 },
+	antigravity: { type: 'pb2Entity.TYPE_ANTIGRAVITY ', styleId: 'pb2EntityAntigravity.TYPE_ANTIGRAVITY', scale: 1 },
+	antigravity0: { type: 'pb2Entity.TYPE_ANTIGRAVITY ', styleId: 'pb2EntityAntigravity.TYPE_ANTIGRAVITY', scale: 1 },
 	/* veh_rope: { type: 'pb2Entity.TYPE_MOTO ', styleId: 'pb2EntityMoto.STYLE_ID_MOBILE_CS', scale: 1 }, no equivalent.. */
 };
 
