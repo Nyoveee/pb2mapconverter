@@ -25,6 +25,8 @@ body::before {
 	right: 0px;
 	bottom: 0px;
 
+	background-color: var(--bg);
+
 	/* Top layer: dark translucent tint | Bottom layer: your image */
 	background-image: linear-gradient(rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.55)), url('bg.webp');
 
