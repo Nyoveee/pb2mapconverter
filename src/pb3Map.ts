@@ -384,9 +384,18 @@ export class PB3Map {
 			}
 		}
 
-		for (const character of this.characters) {
+		for (let i = this.characters.length - 1; i >= 0; i--) {
+			// eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- Index is calculated from length, it couldn't be undefined.
+			const character = this.characters[i]!;
+			const skin = this.getOrCreateSkin(character.pb2SkinId);
+
+			if (!skin) {
+				this.characters.splice(i, 1);
+				continue;
+			}
+
 			character.teamUID = this.getOrCreateTeam(character.pb2TeamId).uid;
-			character.skinUID = this.getOrCreateSkin(character.pb2SkinId).uid;
+			character.skinUID = skin.uid;
 
 			if (!character.isAIInactive) {
 				character.aiPresetUID = this.getOrCreateAIPreset().uid;
@@ -472,9 +481,17 @@ export class PB3Map {
 		return entity;
 	};
 
-	private getOrCreateSkin = (characterSkinIndex: number): SkinEntity => {
+	private getOrCreateSkin = (characterSkinIndex: number): SkinEntity | null => {
+		let pb3Model = PB2SkinToPB3[characterSkinIndex];
+
+		// this character should be removed. (eg. drone controllers)
+		if (pb3Model === null) {
+			return null;
+		}
+
+		// this character's model is no equivalent, falling back to marine skin..
 		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- Indexing a hardcoded map, 1 is guaranteed to exist.
-		const pb3Model = PB2SkinToPB3[characterSkinIndex] ?? PB2SkinToPB3[1]!; // marine by default
+		pb3Model ??= PB2SkinToPB3[1]!;
 
 		let entity = this.skins[pb3Model];
 		if (entity === undefined) {

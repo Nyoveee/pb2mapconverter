@@ -108,6 +108,8 @@ export const PB2SkinToPB3: Record<number, number | null> = {
 	49: 49, // Heavy Hero
 	3: 60, // Proxy
 	61: 61, // Proxy (No helmet)
+	62: 60, // Proxy D
+	63: 60, // Proxy E
 	72: 72, // Proxy (White)
 	75: 75, // Blue Proxy
 	76: 76, // Red Proxy
@@ -134,11 +136,11 @@ export const PB2SkinToPB3: Record<number, number | null> = {
 	79: 79, // Blue Usurpation Soldier
 	80: 80, // Red Usurpation Soldier
 	6: 6, // Advanced Usurpation Soldier
+
+	5: null, // Drone controller, should be removed in PB3.
 	/*
     no pb2 equivalent
     50 // Combined Marine
-    62 // Proxy D
-    63 // Proxy E
     17 // Digits
     */
 };
