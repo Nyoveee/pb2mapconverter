@@ -4,6 +4,7 @@
 
 import { serializeSurface } from '../serialize/surface.js';
 import { blackColor, whiteColor, type Color } from '../utils/color.js';
+import type { MapConversionOption } from '../utils/option.js';
 import type { Position, WorldBoundary } from '../utils/types.js';
 import type { SurfaceEntity } from './entity-types.js';
 import { EDITOR_ICON_WIDTH, iconHeightGap } from './special-values.js';
@@ -56,7 +57,7 @@ const pb2BackgroundMaterialToSurfaceInfo: Record<number, SurfaceInfo> = {
 
 export const pb2ShadowBackgroundMaterial = -1;
 
-export const createPB2WallSurface = (materialIndex: number, position: Position, uid: string): SurfaceEntity => {
+export const createPB2WallSurface = (materialIndex: number, position: Position, uid: string, option: MapConversionOption): SurfaceEntity => {
 	// eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- index 0 should always contain a basic material, this is a hardcoded map.
 	const wallSurfaceInfo = pb2WallMaterialToSurfaceInfo[materialIndex] ?? pb2WallMaterialToSurfaceInfo[0]!;
 
@@ -67,12 +68,12 @@ export const createPB2WallSurface = (materialIndex: number, position: Position, 
 		color: whiteColor,
 		visible: true,
 		serialize() {
-			return serializeSurface(this, SurfaceType.Wall);
+			return serializeSurface(this, SurfaceType.Wall, option);
 		},
 	};
 };
 
-export const createPB2BackgroundSurface = (materialIndex: number, color: Color, position: Position, uid: string): SurfaceEntity => {
+export const createPB2BackgroundSurface = (materialIndex: number, color: Color, position: Position, uid: string, option: MapConversionOption): SurfaceEntity => {
 	// eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- index 0 should always contain a basic material, this is a hardcoded map.
 	const backgroundSurfaceInfo = pb2BackgroundMaterialToSurfaceInfo[materialIndex] ?? pb2BackgroundMaterialToSurfaceInfo[0]!;
 
@@ -83,12 +84,12 @@ export const createPB2BackgroundSurface = (materialIndex: number, color: Color, 
 		color: color,
 		visible: true,
 		serialize() {
-			return serializeSurface(this, SurfaceType.Background);
+			return serializeSurface(this, SurfaceType.Background, option);
 		},
 	};
 };
 
-export const createPB2MovableSurface_isVisible = (visible: boolean, worldBoundary: WorldBoundary): SurfaceEntity => {
+export const createPB2MovableSurface_isVisible = (visible: boolean, worldBoundary: WorldBoundary, option: MapConversionOption): SurfaceEntity => {
 	const visibleMovableSurfaceUID = `visibleMovableSurface`;
 	const invisibleMovableSurfaceUID = `invisibleMovableSurface`;
 	const BLACK_WALL_INDEX = -1;
@@ -106,7 +107,7 @@ export const createPB2MovableSurface_isVisible = (visible: boolean, worldBoundar
 		color: blackColor,
 		visible: visible,
 		serialize() {
-			return serializeSurface(this, SurfaceType.Movable);
+			return serializeSurface(this, SurfaceType.Movable, option);
 		},
 	};
 };

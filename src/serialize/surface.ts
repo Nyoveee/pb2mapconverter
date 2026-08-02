@@ -2,14 +2,17 @@ import type { SurfaceEntity } from '../pb2Objects/entity-types.js';
 import { SurfaceType, type SurfaceT } from '../pb2Objects/surface.js';
 
 import { blackColor, colorToPB2Hex, multiplyColor, pb2BlueColor, pb2GreenColor, pb2RedColor, type Color } from '../utils/color.js';
+import type { MapConversionOption } from '../utils/option.js';
 import { toPB3String } from './serialize.js';
 
-export const serializeSurface = (surface: SurfaceEntity, surfaceType: SurfaceT) => {
+export const serializeSurface = (surface: SurfaceEntity, surfaceType: SurfaceT, option: MapConversionOption) => {
 	// Different types of surface (wall, background and movable) have different parameters.
 	// We calculate the appropriate parameter here.
 
-	// Only walls that are grass or sand should generate terrain (for foilage effect).
-	const toGenerateTerrain = surfaceType === SurfaceType.Wall && (surface.surfaceTerrain === 'Grass' || surface.surfaceTerrain === 'Sand');
+	const toGenerateTerrain =
+		option.generate_terrain === 'Yes' && // User configured option to generate terrain is enabled.
+		surfaceType === SurfaceType.Wall && // Only walls
+		(surface.surfaceTerrain === 'Grass' || surface.surfaceTerrain === 'Sand'); // Only grass or sand should generate terrain (for foilage effect).
 
 	let colorMultiplier = surface.color;
 	let surfaceTerrain = surface.surfaceTerrain;

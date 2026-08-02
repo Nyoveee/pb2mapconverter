@@ -413,7 +413,7 @@ export class PB3Map {
 		const count = Object.keys(this.wallSurfaces).length;
 
 		if (entity === undefined) {
-			entity = createPB2WallSurface(materialIndex, this.getAppropriatePosition('surfaceWall', count), this.getUniqueUID('wallSurface'));
+			entity = createPB2WallSurface(materialIndex, this.getAppropriatePosition('surfaceWall', count), this.getUniqueUID('wallSurface'), this.options);
 			this.wallSurfaces[materialIndex] = entity;
 		}
 
@@ -427,7 +427,13 @@ export class PB3Map {
 
 		let entity = this.backgroundSurfaces[key];
 		if (entity === undefined) {
-			entity = createPB2BackgroundSurface(materialIndex, colorMultiplier, this.getAppropriatePosition('surfaceBg', count), this.getUniqueUID('backgroundSurface'));
+			entity = createPB2BackgroundSurface(
+				materialIndex,
+				colorMultiplier,
+				this.getAppropriatePosition('surfaceBg', count),
+				this.getUniqueUID('backgroundSurface'),
+				this.options,
+			);
 			this.backgroundSurfaces[key] = entity;
 		}
 		return entity;
@@ -461,7 +467,7 @@ export class PB3Map {
 		const key = visible.toString() as BooleanAsString;
 		let entity = this.movableSurfaces[key];
 		if (entity === undefined) {
-			entity = createPB2MovableSurface_isVisible(visible, this.worldBoundary);
+			entity = createPB2MovableSurface_isVisible(visible, this.worldBoundary, this.options);
 			this.movableSurfaces[key] = entity;
 		}
 		return entity;
