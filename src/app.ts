@@ -9,6 +9,7 @@ import express from 'express';
 import multer from 'multer';
 
 import processPB2XMLFile from './process.js';
+import { validateOptions } from './utils/option.js';
 
 const app = express();
 const upload: Multer = multer({ storage: multer.memoryStorage() });
@@ -27,7 +28,8 @@ app.post('/upload', upload.single('file'), async (req: Request, res: Response) =
 		const fileContent = req.file.buffer.toString('utf-8');
 
 		// Process the PB2 XML file into PB3 source code in a form of a string (may fail)
-		const result = await processPB2XMLFile(fileContent);
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access -- validateOptions is a validator that will appropriate handle the any type.
+		const result = await processPB2XMLFile(fileContent, validateOptions(req.body.options));
 
 		if (!result) {
 			return res.status(400).json({

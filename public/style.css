@@ -14,10 +14,35 @@
 	--text: #f0f0f0;
 	--muted: #666;
 	--radius: 12px;
+	--warning: #dd4b4b;
+}
+
+body::before {
+	content: '';
+	position: fixed;
+	top: 0px;
+	left: 0px;
+	right: 0px;
+	bottom: 0px;
+
+	/* Top layer: dark translucent tint | Bottom layer: your image */
+	background-image: linear-gradient(rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.55)), url('bg.webp');
+
+	background-size: cover;
+	background-position: center;
+	background-attachment: fixed;
+
+	/* Applies the blur effect */
+	filter: blur(10px);
+
+	/* 3. Scale up the element slightly to hide the white blurry artifacts out of the viewport boundaries */
+	transform: scale(1.035);
+
+	/* Keeps the background behind your actual page content */
+	z-index: -1;
 }
 
 body {
-	background: var(--bg);
 	color: var(--text);
 	font-family: 'Roboto', sans-serif;
 	min-height: 100vh;
@@ -61,6 +86,14 @@ body {
 	/* text-decoration: none; */
 }
 
+.text-color {
+	color: var(--text);
+}
+
+.warning-color {
+	color: var(--warning);
+}
+
 /* Pages */
 .page {
 	display: none;
@@ -68,7 +101,7 @@ body {
 .page.active {
 	display: flex;
 	flex-direction: column;
-	gap: 2rem;
+	gap: 1.5rem;
 }
 
 /* Drop zone */
@@ -326,9 +359,157 @@ body {
 }
 
 .info {
-	margin-top: 0.5rem;
 	font-family: 'Roboto', sans-serif;
 	font-size: 0.9rem;
 	color: var(--text);
 	font-weight: 200;
+}
+
+/* Expandable panel */
+.panel {
+	border: 1px solid var(--border);
+	border-radius: var(--radius);
+}
+
+.panel-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 0.85rem 1rem;
+	cursor: pointer;
+	user-select: none;
+	font-size: 0.85rem;
+	font-weight: 700;
+	color: var(--text);
+	transition: background 0.15s;
+}
+
+.panel-header:hover {
+	background: rgba(232, 255, 71, 0.04);
+}
+
+.panel-arrow {
+	transition: transform 0.2s ease;
+	flex-shrink: 0;
+}
+
+.panel.open .panel-arrow {
+	transform: rotate(180deg);
+}
+
+.panel-body {
+	display: none;
+	padding: 0 1rem 1rem;
+}
+
+.panel.open .panel-body {
+	display: block;
+}
+
+.option-row {
+	display: grid;
+	grid-template-columns: 50% 1fr;
+	align-items: center;
+	gap: 0.5rem;
+	padding: 0.5rem 0;
+	border-bottom: 1px solid var(--border);
+}
+
+.option-row:last-child {
+	border-bottom: none;
+}
+
+.option-label-wrap {
+	display: flex;
+	align-items: center;
+	gap: 0.35rem;
+}
+
+.option-controls {
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+	gap: 0.5rem;
+}
+
+.option-label {
+	font-size: 0.82rem;
+	color: var(--text);
+	font-weight: 400;
+}
+
+.toggle {
+	position: relative;
+	width: 36px;
+	height: 20px;
+	background: var(--border);
+	border: none;
+	border-radius: 99px;
+	cursor: pointer;
+	padding: 0;
+	transition: background 0.2s;
+	flex-shrink: 0;
+}
+
+.toggle[aria-checked='true'] {
+	background: var(--accent);
+}
+
+.toggle-knob {
+	position: absolute;
+	top: 2px;
+	left: 2px;
+	width: 16px;
+	height: 16px;
+	background: var(--text);
+	border-radius: 50%;
+	transition: transform 0.2s ease;
+}
+
+.toggle[aria-checked='true'] .toggle-knob {
+	transform: translateX(16px);
+}
+
+.toggle-state {
+	font-size: 0.75rem;
+	font-family: 'Roboto', monospace;
+	color: var(--muted);
+	min-width: 1.2em;
+}
+
+.hint-wrap {
+	position: relative;
+	display: inline-flex;
+	align-items: center;
+	cursor: help;
+	color: var(--muted);
+}
+
+.hint-wrap:hover {
+	color: var(--accent);
+}
+
+.hint-tooltip {
+	display: none;
+	position: absolute;
+	bottom: calc(100% + 8px);
+	left: 50%;
+	transform: translateX(-50%);
+	background: var(--bg);
+	border: 1px solid var(--border);
+	border-radius: 8px;
+	padding: 0.6rem 0.8rem;
+	font-size: 0.8rem;
+	font-family: 'Roboto', sans-serif;
+	font-weight: 300;
+	color: var(--text);
+	line-height: 1.5;
+	width: 400px;
+	z-index: 10;
+	pointer-events: none;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.hint-wrap:hover .hint-tooltip {
+	display: block;
 }

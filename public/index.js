@@ -22,6 +22,9 @@ const backBtn = document.getElementById('backBtn');
 const contentTextarea = document.getElementById('contentTextarea');
 const copyBtn = document.getElementById('copyBtn');
 const copySuccess = document.getElementById('copySuccess');
+const optionsPanel = document.getElementById('optionsPanel');
+const panelHeader = document.getElementById('panelHeader');
+const panelBody = document.getElementById('panelBody');
 
 function formatBytes(bytes) {
 	if (bytes < 1024) return bytes + ' B';
@@ -89,6 +92,7 @@ submitBtn.addEventListener('click', () => {
 
 	const formData = new FormData();
 	formData.append('file', state.selectedFile);
+	formData.append('options', JSON.stringify(gatherOptions()));
 
 	submitBtn.disabled = true;
 	progressWrap.classList.add('visible');
@@ -141,6 +145,59 @@ submitBtn.addEventListener('click', () => {
 backBtn.addEventListener('click', () => {
 	clearFile();
 	goToPage('upload');
+});
+
+function gatherOptions() {
+	const optionElements = document.querySelectorAll('[data-option]');
+	const options = {};
+
+	optionElements.forEach((el) => {
+		const key = el.getAttribute('data-option');
+		if (el.classList.contains('toggle')) {
+			const isOn = el.getAttribute('aria-checked') === 'true';
+			options[key] = isOn ? el.getAttribute('data-toggle-on') : el.getAttribute('data-toggle-off');
+		}
+	});
+
+	return options;
+}
+
+function initToggles() {
+	const toggles = document.querySelectorAll('.toggle[data-option]');
+	toggles.forEach((toggle) => {
+		const controls = toggle.closest('.option-controls');
+		const stateLabel = controls?.querySelector('[data-toggle-state]');
+		if (!stateLabel) return;
+
+		const isOn = toggle.getAttribute('aria-checked') === 'true';
+		const onLabel = toggle.getAttribute('data-toggle-on') || 'Yes';
+		const offLabel = toggle.getAttribute('data-toggle-off') || 'No';
+		stateLabel.textContent = isOn ? onLabel : offLabel;
+	});
+}
+
+initToggles();
+
+// Panel expand/collapse
+panelHeader.addEventListener('click', () => {
+	optionsPanel.classList.toggle('open');
+});
+
+// Yes/no toggle (event delegation for scalability)
+panelBody.addEventListener('click', (e) => {
+	const toggle = e.target.closest('.toggle');
+	if (!toggle) return;
+
+	const isOn = toggle.getAttribute('aria-checked') === 'true';
+	toggle.setAttribute('aria-checked', String(!isOn));
+
+	const controls = toggle.closest('.option-controls');
+	const stateLabel = controls?.querySelector('[data-toggle-state]');
+	if (stateLabel) {
+		const onLabel = toggle.getAttribute('data-toggle-on') || 'Yes';
+		const offLabel = toggle.getAttribute('data-toggle-off') || 'No';
+		stateLabel.textContent = isOn ? offLabel : onLabel;
+	}
 });
 
 // Copy to clipboard

@@ -3,13 +3,14 @@ import path from 'node:path';
 import { describe, expect, test, vi } from 'vitest';
 
 import convertPB2XMLFile from '../process.js';
+import { defaultOptions } from '../utils/option.js';
 
 const retrieveMapContent = async (mapName: string) => {
 	const testMapDirectory = path.join(process.cwd(), 'src', '__tests__', 'maps');
 	const testMap = path.join(testMapDirectory, mapName + '.xml');
 
 	const fileContent = await fs.readFile(testMap, 'utf-8');
-	return await convertPB2XMLFile(fileContent);
+	return await convertPB2XMLFile(fileContent, defaultOptions);
 };
 
 const retrieveExpectedParsedMapResult = async (mapName: string) => {

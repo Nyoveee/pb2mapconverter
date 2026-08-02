@@ -80,9 +80,11 @@ import { serializePB3Entity } from './serialize/pb3Entity.js';
 import { serializeDecoration } from './serialize/decoration.js';
 import { getAssociatedExecuteMethodProperties } from './pb2Objects/trigger-values.js';
 import { serializeTimer } from './serialize/timer.js';
+import type { MapConversionOption } from './utils/option.js';
 
 export class PB3Map {
 	// ============================================================================================
+
 	// PB2 Objects
 	private walls: WallEntity[] = [];
 	private backgrounds: BackgroundEntity[] = [];
@@ -111,13 +113,16 @@ export class PB3Map {
 	private timers: TimerEntity[] = [];
 
 	// Metadata
+	private options: MapConversionOption;
 	private worldBoundary: WorldBoundary = { min: { x: Infinity, y: Infinity }, max: { x: -Infinity, y: -Infinity } };
 	private hasGrenades = false;
 	private usedUIDs: Record<string, number> = {};
 	// ============================================================================================
 
 	// Constructs a valid representation of the PB2 map, given an opaque parsed XML object.
-	constructor(xmlFile: XLMParseOutput) {
+	constructor(xmlFile: XLMParseOutput, options: MapConversionOption) {
+		this.options = options;
+
 		// --------------------------------------------------
 		// 1. We focus on parsing all PB2 objects..
 		// --------------------------------------------------
