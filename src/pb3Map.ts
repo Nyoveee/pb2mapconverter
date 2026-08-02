@@ -1056,7 +1056,7 @@ export class PB3Map {
 	};
 
 	private createPusherTriggerGroups = () => {
-		const PUSHER_STRENGTH_MULTIPLIER = 270; // Pushers in PB2 are much stronger compared to PB3.
+		const PUSHER_STRENGTH_MULTIPLIER = 35; // Pushers in PB2 are much stronger compared to PB3.
 		const PUSHER_DAMAGE_MULTIPLIER = 0.12; // Pushers in PB2 are much weaker compared to PB3.
 
 		// A pusher in PB3 can be simulated with the region sub-step push function.
