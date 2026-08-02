@@ -116,7 +116,7 @@ const PB2TriggerActionToExecuteMethod = {
 	},
 	// Set the frequency of calls of Timer 'A' to value 'B'
 	'27': {
-		functionName: 'SetTimerMaxCalls_PB2Preset',
+		functionName: 'SetTimerDelay_PB2Preset',
 		arguments: (argumentA: string, argumentB: string) => {
 			return [parseUIDReference(argumentA, 'timer'), argumentB];
 		},

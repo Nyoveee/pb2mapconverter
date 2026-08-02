@@ -28,18 +28,84 @@ export interface Geometry {
 	h: number;
 }
 
+// Q: Why a map like this instead of transforming all special characters to something like '_' ?
+// Answer: There's a possibility that two strings using different special characters may result in the same string. (we want this mapping to be injective)
+// EG: #potato tomato and #potato@tomato
+const ASCII_SPECIAL_MAP: Record<string, string> = {
+	// Whitespace & Controls
+	' ': '_space_',
+	'\t': '_tab_',
+	'\n': '_newline_',
+	'\r': '_return_',
+
+	// Common Punctuation
+	'.': '_dot_',
+	',': '_comma_',
+	';': '_semi_',
+	':': '_colon_',
+	'!': '_excl_',
+	'?': '_quest_',
+	"'": '_apos_',
+	'"': '_quote_',
+	'`': '_backtick_',
+
+	// Math & Symbols
+	'+': '_plus_',
+	'-': '_minus_',
+	'*': '_',
+	'/': '_slash_',
+	'=': '_equal_',
+	'%': '_percent_',
+	'^': '_caret_',
+	'&': '_amp_',
+	'|': '_pipe_',
+	'~': '_tilde_',
+
+	// Brackets & Enclosures
+	'(': '_lparen_',
+	')': '_rparen_',
+	'[': '_lbracket_',
+	']': '_rbracket_',
+	'{': '_lbrace_',
+	'}': '_rbrace_',
+	'<': '_lt_',
+	'>': '_gt_',
+
+	// Currency & Identity
+	$: '_dollar_',
+	'#': '_hash_',
+	'@': '_at_',
+	'\\': '_bslash_',
+	_: '_under_',
+};
+
 // PB2's UID are not valid UIDs for PB3, due to # and * characters.
 export const reformatPB2UID = (uid: string | undefined): string => {
-	const string = uid ?? '';
+	let string = uid ?? '';
 
 	if (string === '') {
 		return string;
 	}
 
-	let newUid = string.replace(/#/g, '').replace(/\*/g, '_');
+	// Remove initial #
+	string = string.startsWith('#') ? string.slice(1) : string;
 
+	let newUid = '';
+
+	// Sanitize string..
+	for (const char of string) {
+		if (ASCII_SPECIAL_MAP[char] !== undefined) {
+			// Map special char to 'X' + lowercase identifier
+			newUid += ASCII_SPECIAL_MAP[char];
+		} else {
+			// Keep existing a-z, A-Z, 0-9 exactly as they are
+			newUid += char;
+		}
+	}
+
+	// Ensure resulting string is a valid JS identifier..
 	if (/^\d/.test(newUid)) {
-		newUid = 'oleuid_' + newUid;
+		newUid = 'uid_' + newUid;
 	}
 
 	return newUid;
