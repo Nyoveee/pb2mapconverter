@@ -3,7 +3,7 @@ import { SurfaceType, type SurfaceT } from '../pb2Objects/surface.js';
 
 import { blackColor, colorToPB2Hex, multiplyColor, pb2BlueColor, pb2GreenColor, pb2RedColor, type Color } from '../utils/color.js';
 import type { MapConversionOption } from '../utils/option.js';
-import { toPB3String } from './serialize.js';
+import { movableSoundPresetVarName, toPB3String } from './serialize.js';
 
 export const serializeSurface = (surface: SurfaceEntity, surfaceType: SurfaceT, option: MapConversionOption) => {
 	// Different types of surface (wall, background and movable) have different parameters.
@@ -42,10 +42,13 @@ export const serializeSurface = (surface: SurfaceEntity, surfaceType: SurfaceT, 
 	// Both movables and walls needs to set parameter to be true. (according to PB3 that is)
 	const is_for_wall = surfaceType === SurfaceType.Wall || surfaceType === SurfaceType.Movable;
 
-	return _serializeSurface(surface, toGenerateTerrain, colorMultiplier, is_for_wall, surfaceTerrain);
+	// If movable sound is enabled, movables should reference this sound preset.
+	const movable_sounds_preset = option.movable_sounds === 'Yes' && surfaceType === SurfaceType.Movable ? movableSoundPresetVarName : 'null';
+
+	return _serializeSurface(surface, toGenerateTerrain, colorMultiplier, is_for_wall, surfaceTerrain, movable_sounds_preset);
 };
 
-const _serializeSurface = (surface: SurfaceEntity, toGenerateTerrain: boolean, colorMultiplier: Color, is_wall: boolean, surfaceTerrain: string) => {
+const _serializeSurface = (surface: SurfaceEntity, toGenerateTerrain: boolean, colorMultiplier: Color, is_wall: boolean, surfaceTerrain: string, movable_sounds_preset: string) => {
 	const color = `new pb2HighRangeColor( ${colorToPB2Hex(colorMultiplier)} )`;
 
 	// for avoiding ditto mismatch
@@ -116,7 +119,7 @@ const _serializeSurface = (surface: SurfaceEntity, toGenerateTerrain: boolean, c
 		appearance: 'pb2SurfaceType.APPEARANCE_NORMAL',
 		recommended_slices_per_density: '5',
 		debris_material: 'pb2Entity.MATERIAL_CONCRETE',
-		movable_sounds_preset: 'null',
+		movable_sounds_preset: movable_sounds_preset,
 		slice_texture_container: 'null',
 		slice_color: 'new pb2HighRangeColor( 0xffffff )',
 		slice_color_addon: 'new pb2HighRangeColor( 0x000000 )',

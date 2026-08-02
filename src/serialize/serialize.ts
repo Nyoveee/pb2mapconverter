@@ -13,6 +13,7 @@
 // Standard map header that downloads Eric's basic trigger preset module and enable player assignment logic.
 export const PB3StandardMapHeader = `//->Ditto->//{"operation":"define_global_vars"}
 pb2GameWorld.DownloadModules( { user_data_uids_to_load: [ 183/*Eric Gurt's Basic trigger action presets*/, 10742/*Some PB2 Trigger Presets*/ ], inline: true, success_callback: _pb2N } );function _pb2N(){//->Ditto->//{"id":"","operation":"create","constructor":"pb2GameWorld.DownloadModules","user_data_uids_to_load":"[ 183/*Eric Gurt's Basic trigger action presets*/, 10742/*Some PB2 Trigger Presets*/ ]","execute_on_load":"true","inline":"true","success_callback":"null","error_callback":"null","x":"0","y":"0","_visible":"0","_locked":"0","_disabled":"0"}
+pb2GameWorld.DownloadSounds( { user_data_uids_to_load: [12285,12286], inline: true, success_callback: _pb2N } );function _pb2N(){//->Ditto->//{"id":"","operation":"create","constructor":"pb2GameWorld.DownloadSounds","user_data_uids_to_load":"[ 12285/*PB2 Door Start Sound*/, 12286/*PB2 Door End Sound*/ ]","skip_unused":"true","inline":"true","success_callback":"null","error_callback":"null","x":"0","y":"0","_visible":"0","_locked":"0","_disabled":"0"}
 pb2GameWorld.EnableSimplePlayerAssignmentLogic();//->Ditto->//{"x":"0","y":"0","operation":"call_method","method":"pb2GameWorld.EnableSimplePlayerAssignmentLogic","argument_values":"","keep_at_the_bottom":"0","_visible":"0","_locked":"0","_disabled":"0"}
 `;
 
@@ -78,3 +79,6 @@ export const makeScript = (x: number, y: number, code: string): string => {
 
 	return `${code}//->Ditto->//${JSON.stringify(editor_object)}\n`;
 };
+
+export const movableSoundPresetVarName = 'movable_sounds_pb2_preset';
+export const movableSoundPreset = `${movableSoundPresetVarName} = { sound_start: 'user_data12285', sound_start_pitch: 1, sound_start_volume: 1, sound_loop: null, sound_loop_pitch: 1, sound_loop_volume: 1, sound_stop: 'user_data12286', sound_stop_pitch: 1, sound_stop_volume: 1, sound_damage: null, sound_damage_pitch: 1, sound_damage_volume: 1, sound_break: null, sound_break_pitch: 1, sound_break_volume: 1, sound_loop_base_speed: 10, sound_loop_speed_to_pitch_factor: 1, sound_damage_base_volume: 50, sound_damage_volume_scale_with_damage_factor: 1 };//->Ditto->//{"operation":"create","constructor":"Object.MovableSoundsPreset","id":"movable_sounds_pb2_preset","sound_start":"'user_data12285'","sound_start_pitch":"1","sound_start_volume":"1","sound_loop":"null","sound_loop_pitch":"1","sound_loop_volume":"1","sound_stop":"'user_data12286'","sound_stop_pitch":"1","sound_stop_volume":"1","sound_damage":"null","sound_damage_pitch":"1","sound_damage_volume":"1","sound_break":"null","sound_break_pitch":"1","sound_break_volume":"1","sound_loop_base_speed":"10","sound_loop_speed_to_pitch_factor":"1","sound_damage_base_volume":"50","sound_damage_volume_scale_with_damage_factor":"1","x":"0","y":"-100","_visible":"0","_locked":"0","_disabled":"0"}\n`;

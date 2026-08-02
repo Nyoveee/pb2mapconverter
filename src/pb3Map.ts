@@ -45,7 +45,15 @@ import { getBackgroundKey, type BackgroundIdentifierStr } from './pb2Objects/sur
 import { getLiquidKindKey, type LiquidIdentifierStr } from './pb2Objects/liquid.js';
 
 import { getCenterPosition, parseGeometry, updateWorldBoundary } from './utils/math.js';
-import { makeScript, PB3StandardFooter, PB3StandardMapHeader, serializeForceRegenScript, serializeMapConfigureScript } from './serialize/serialize.js';
+import {
+	makeScript,
+	movableSoundPreset,
+	movableSoundPresetVarName,
+	PB3StandardFooter,
+	PB3StandardMapHeader,
+	serializeForceRegenScript,
+	serializeMapConfigureScript,
+} from './serialize/serialize.js';
 import { serializeBox } from './serialize/box.js';
 import { serializeLamp } from './serialize/lamp.js';
 import { serializeGun } from './serialize/gun.js';
@@ -205,6 +213,11 @@ export class PB3Map {
 		// 1. We declare all UID.. this is the `global vars declaration` section
 		// -------------------------------
 		let globalNames: string[] = [];
+
+		if (this.options.movable_sounds === 'Yes') {
+			globalNames.push(movableSoundPresetVarName);
+		}
+
 		globalNames.push(...Object.values(this.wallSurfaces).map((s) => s.uid));
 		globalNames.push(...Object.values(this.backgroundSurfaces).map((s) => s.uid));
 		globalNames.push(...Object.values(this.movableSurfaces).map((s) => s.uid));
@@ -244,6 +257,10 @@ export class PB3Map {
 		this.triggerGroups.map((triggerGroup) => (pb3SourceCode += `${triggerGroup.uid}=()=>_pb2TU('${triggerGroup.uid}');`));
 
 		pb3SourceCode += PB3StandardMapHeader;
+
+		if (this.options.movable_sounds === 'Yes') {
+			pb3SourceCode += movableSoundPreset;
+		}
 
 		// top-left corner
 		const minX = this.worldBoundary.min.x;
