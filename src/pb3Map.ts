@@ -653,7 +653,9 @@ export class PB3Map {
 	private createMovableSpeedScript = (x: number, y: number) => {
 		let code = `
 /* 
-    This script sets all the initial speed of all movables.
+	PB2 Script | Set all movable's initial speed 
+
+    This script sets the initial speed of all movables.
 */
 `;
 		for (const movable of this.movables) {

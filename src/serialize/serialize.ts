@@ -37,6 +37,8 @@ export const toPB3String = ({ code, jsonObject }: { code: string; jsonObject: st
 export const serializeForceRegenScript = (x: number, y: number): string => {
 	let code = `
 /* 
+	PB2 Script | Forced startup regeneration
+
     In PB3, character that has their current health less than their max health doesn't regenerate their health.
 
     This script damages all PB3 character that doesn't have max health with a value of 0, forcing health regeneration
@@ -54,6 +56,8 @@ export const serializeForceRegenScript = (x: number, y: number): string => {
 export const serializeMapConfigureScript = (x: number, y: number): string => {
 	let code = `
 /* 
+	PB2 Script | World Setting
+
     This script changes the current setting such that it closely resembles PB2 settings. 
     You may remove this script if desired.
 */
@@ -68,7 +72,7 @@ export const serializeMapConfigureScript = (x: number, y: number): string => {
 export const makeScript = (x: number, y: number, code: string): string => {
 	const editor_object = {
 		operation: 'code',
-		snippet_color: '0xb1b1ff',
+		snippet_color: '0xffffff',
 		code: code,
 		x: x.toString(),
 		y: y.toString(),

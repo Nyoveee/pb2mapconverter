@@ -16,6 +16,8 @@ export const serializeSpawnGrenadesScript = (x: number, y: number): string => {
 	return makeScript(x, y,
 		`(() => {
     /*
+    	PB2 Script | Grenade
+
         This file is responsible for spawning grenades. This works by looking all any object that starts with 'gadget_spawn_point',
         and parsing the name that contains the grenade's properties.
 
