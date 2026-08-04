@@ -462,6 +462,7 @@ export class PB3Map {
 		let entity = this.liquidKinds[key];
 
 		if (entity === undefined) {
+			const options = this.options; // closure :)
 			const count = Object.keys(this.liquidKinds).length;
 
 			entity = {
@@ -470,7 +471,7 @@ export class PB3Map {
 				damage,
 				actAsWater,
 				serialize() {
-					return serializeLiquidKind(this);
+					return serializeLiquidKind(this, options);
 				},
 			};
 

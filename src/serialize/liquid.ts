@@ -1,11 +1,21 @@
 import type { LiquidKindEntity } from '../pb2Objects/entity-types.js';
+import type { MapConversionOption } from '../utils/option.js';
 import { toPB3String } from './serialize.js';
 
 const acidColor = '0x66ff00';
 const waterColor = '0x003344';
 
-export const serializeLiquidKind = (liquidKind: LiquidKindEntity) => {
+export const serializeLiquidKind = (liquidKind: LiquidKindEntity, option: MapConversionOption) => {
 	const opacity = liquidKind.actAsWater ? 0.6 : 0;
+
+	const liquid_type =
+		liquidKind.damage > 0
+			? // Acid?
+				option.acid_type === 'Corrosive'
+				? 'pb2WaterClass.TYPE_CORROSIVE'
+				: 'pb2WaterClass.TYPE_TOXIC'
+			: // Water
+				'pb2WaterClass.TYPE_WATER';
 
 	const code = `
         ${liquidKind.uid} = pb2WaterClass.DeclareWaterClass({ 
@@ -19,7 +29,7 @@ export const serializeLiquidKind = (liquidKind: LiquidKindEntity) => {
             extend_left: false, 
             extend_right: false, 
             cover_decals: false, 
-            type: ${liquidKind.damage > 0 ? 'pb2WaterClass.TYPE_TOXIC' : 'pb2WaterClass.TYPE_WATER'} 
+            type: ${liquid_type} 
         });
     `;
 
@@ -39,7 +49,7 @@ export const serializeLiquidKind = (liquidKind: LiquidKindEntity) => {
 		extend_left: 'false',
 		extend_right: 'false',
 		cover_decals: 'false',
-		type: liquidKind.damage > 0 ? 'pb2WaterClass.TYPE_TOXIC' : 'pb2WaterClass.TYPE_WATER',
+		type: liquid_type,
 		damage_scale: `${liquidKind.damage}`,
 		fire_color: 'new pb2HighRangeColor( 0x723f26 )',
 		x: `${liquidKind.position.x}`,

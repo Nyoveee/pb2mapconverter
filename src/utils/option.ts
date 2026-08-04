@@ -12,6 +12,7 @@ const optionSchema = z.object({
 	movable_sounds: z.enum(['Yes', 'No']),
 	antigravity: z.enum(['Entity', 'Static Decoration']),
 	generate_terrain: z.enum(['Yes', 'No']),
+	acid_type: z.enum(['Corrosive', 'Toxic']),
 });
 
 export type MapConversionOption = z.infer<typeof optionSchema>;
@@ -20,6 +21,7 @@ export const defaultOptions: MapConversionOption = {
 	movable_sounds: 'Yes',
 	antigravity: 'Entity',
 	generate_terrain: 'Yes',
+	acid_type: 'Corrosive',
 };
 
 export const validateOptions = (requestOption: unknown): MapConversionOption => {
