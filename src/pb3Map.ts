@@ -699,6 +699,10 @@ export class PB3Map {
 			}
 		};
 
+		for (const timer of this.timers) {
+			timer.triggerToExecuteUID = timer.triggerToExecuteUID ? resolveUID(timer.triggerToExecuteUID) : null;
+		}
+
 		for (const character of this.characters) {
 			character.triggerToExecuteOnDeathUID = character.triggerToExecuteOnDeathUID ? resolveUID(character.triggerToExecuteOnDeathUID) : null;
 		}
