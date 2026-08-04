@@ -148,8 +148,8 @@ export const parsePB2UIDReference = (reference: string | undefined, type: Trigge
  * 1 = right
  */
 export type Side = -1 | 1;
-
 export type BooleanAsString = `${boolean}`;
+export type Vision = 'pb2Vision.VISION_DIRECTED_TRACE' | 'pb2Vision.VISION_EVERYTHING';
 
 export const escapeSingleQuotes = (str: string): string => {
 	// Replaces all single quotes with an escaped version

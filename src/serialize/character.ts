@@ -41,8 +41,6 @@ const DEFAULT_EDITOR_OBJECT = {
 };
 
 export const serializeCharacter = (entity: CharacterEntity): string => {
-	const vision = 'pb2Vision.VISION_DIRECTED_TRACE';
-
 	const code = `
 	${entity.uid} = pb2Ragdoll.CreateRagdollComplete(
     { 
@@ -52,7 +50,7 @@ export const serializeCharacter = (entity: CharacterEntity): string => {
         ${entity.velY !== 0 ? `toy: ${entity.velY}, ` : ''}
         skin: ${entity.skinUID}, 
         team: ${entity.teamUID}, 
-        vision: ${vision}, 
+        vision: ${entity.vision}, 
         style_boost: pb2StyleBoost.SELFBOOST, 
         style_swords: pb2StyleSwords.BASIC, 
         driver_of: null, 
@@ -84,7 +82,7 @@ export const serializeCharacter = (entity: CharacterEntity): string => {
 		toy: entity.velY.toString(),
 		skin: entity.skinUID,
 		team: entity.teamUID,
-		vision: vision,
+		vision: entity.vision,
 		sword_projectile_reflection: 'true',
 		hmax: entity.hpMax.toString(),
 		hea: entity.hp !== entity.hpMax ? entity.hp.toString() : 'undefined',

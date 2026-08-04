@@ -1158,6 +1158,7 @@ export class PB3Map {
 				hpMax: Number(props.hmax ?? 130),
 				direction: Number(props.side) === -1 ? -1 : 1,
 				isPlayer: isPlayer,
+				vision: isPlayer ? 'pb2Vision.VISION_EVERYTHING' : 'pb2Vision.VISION_DIRECTED_TRACE',
 				pb2SkinId: Number(props.char ?? 1),
 				pb2TeamId: Number(props.team ?? -1),
 				isAIInactive: noBehaviour,

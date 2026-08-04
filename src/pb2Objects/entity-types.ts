@@ -1,5 +1,5 @@
 import type { Color } from '../utils/color.js';
-import type { Geometry, Position, Side } from '../utils/types.js';
+import type { Geometry, Position, Side, Vision } from '../utils/types.js';
 import type { SurfaceInfo } from './surface.js';
 
 // The base class which rules them all..
@@ -133,6 +133,7 @@ export interface CharacterEntity extends EditorObject {
 	hpMax: number;
 	direction: Side;
 	isPlayer: boolean;
+	vision: Vision;
 	triggerToExecuteOnDeathUID: string | null;
 
 	// pb2 properties..
