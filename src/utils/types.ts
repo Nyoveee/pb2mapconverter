@@ -170,3 +170,6 @@ export const isNumericString = (val: string): boolean => {
 export const isExecuteMethod = (object: EditorObject): object is ExecuteMethod => {
 	return 'functionName' in object;
 };
+
+export const DM_SKIN_IDENTIFIER = 'PB2_DEATHMATCH_SKIN';
+export const DM_SKIN_VALUE = 'PB2_DM_SKIN';

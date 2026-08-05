@@ -197,6 +197,41 @@
                             </div>
                         </div>
 
+                        <div class="option-row">
+                            <div class="option-label-wrap">
+                                <span class="option-label">Use Prosu's PB2 Module?</span>
+                                <span class="hint-wrap">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <circle cx="12" cy="12" r="10" />
+                                        <path d="M12 16v-4" />
+                                        <path d="M12 8h.01" />
+                                    </svg>
+                                    <span class="hint-tooltip">
+                                        Specify whether to convert the map in a way that is compatible with Prosu's PB2 MP module.
+                                        <br/><br/>
+                                        Multiplayer in PB3 work differently compared to PB2. There's no inbuilt supported for COOP and DM, and 
+                                        PB3 by default does not use the stats of the players in the map when joining in MP.
+                                        <br/><br/>
+                                        Prosu's MP module makes the PB2 map work with PB3 MP, allowing you to play the map straight away
+                                        in multiplayer. This make the map works just like how PB2 works, with players in the map being used to determine
+                                        the stats (skins, health, etc..) of joining players.
+                                        <br/><br/>
+                                        Options
+                                        <br />
+                                        - Yes (Convert map such that it's compatible with Prosu's PB2 MP module)
+                                        <br/> 
+                                        - No (Do not convert, keeps map simpler)
+                                    </span>
+                                </span>
+                            </div>
+                            <div class="option-controls">
+                                <span class="toggle-state" data-toggle-state></span>
+                                <button class="toggle" role="switch" aria-checked="true" data-option="use_pb2_module" data-toggle-on="Yes" data-toggle-off="No">
+                                    <span class="toggle-knob"></span>
+                                </button>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
 

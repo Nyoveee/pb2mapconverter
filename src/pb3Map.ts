@@ -6,6 +6,8 @@
 */
 import {
 	ALLOWED_TRIGGER_REFERENCES,
+	DM_SKIN_IDENTIFIER,
+	DM_SKIN_VALUE,
 	isExecuteMethod,
 	parsePB2MaxCalls,
 	parsePB2UIDReference,
@@ -41,20 +43,14 @@ import type {
 	DecorationEntity,
 	TimerEntity,
 	EditorObject,
+	Script,
+	Variable,
 } from './pb2Objects/entity-types.js';
 import { getBackgroundKey, type BackgroundIdentifierStr } from './pb2Objects/surface.js';
 import { getLiquidKindKey, type LiquidIdentifierStr } from './pb2Objects/liquid.js';
 
 import { getCenterPosition, parseGeometry, updateWorldBoundary } from './utils/math.js';
-import {
-	makeScript,
-	movableSoundPreset,
-	movableSoundPresetVarName,
-	PB3StandardFooter,
-	PB3StandardMapHeader,
-	serializeForceRegenScript,
-	serializeMapConfigureScript,
-} from './serialize/serialize.js';
+import { movableSoundPreset, movableSoundPresetVarName, PB3StandardFooter, PB3StandardMapHeader, serializeComment, serializeSpacer } from './serialize/serialize.js';
 import { serializeBox } from './serialize/box.js';
 import { serializeLamp } from './serialize/lamp.js';
 import { serializeGun } from './serialize/gun.js';
@@ -80,7 +76,6 @@ import {
 	teamNames,
 } from './pb2Objects/special-values.js';
 import { serializePoint } from './serialize/point.js';
-import { getGrenadeSpawnPointUID, serializeSpawnGrenadesScript } from './serialize/grenade.js';
 import { serializeUseButton } from './serialize/useButton.js';
 import { serializeVector } from './serialize/vector.js';
 import { serializeExecuteMethod } from './serialize/executeMethod.js';
@@ -90,6 +85,16 @@ import { serializeDecoration } from './serialize/decoration.js';
 import { getAssociatedExecuteMethodProperties } from './pb2Objects/trigger-values.js';
 import { serializeTimer } from './serialize/timer.js';
 import type { MapConversionOption } from './utils/option.js';
+import { serializeScript } from './serialize/script.js';
+import {
+	createForceRegenScript,
+	createMapConfigureScript,
+	createPB2ModuleEndScript,
+	createPB2ModuleStartScript,
+	createSpawnGrenadesScript,
+	getGrenadeSpawnPointUID,
+} from './pb2Objects/script.js';
+import { serializeVariable } from './serialize/variable.js';
 
 export class PB3Map {
 	// ============================================================================================
@@ -115,6 +120,7 @@ export class PB3Map {
 	private skins: Record<number, SkinEntity> = {};
 	private aiPresets: Record<number, AIPresetEntity> = {};
 
+	private variables: Variable[] = [];
 	private useButtons: UseButtonEntity[] = [];
 	private points: PointEntity[] = [];
 	private triggerGroups: TriggerGroupEntity[] = [];
@@ -127,6 +133,7 @@ export class PB3Map {
 	private hasGrenades = false;
 	private usedUIDs: Record<string, number> = {};
 	private allUIDs: Set<string> = new Set<string>();
+	private scriptIndex = 0;
 
 	// ============================================================================================
 
@@ -209,6 +216,11 @@ export class PB3Map {
 
 		// This collates all UIDs, and verifies if any UID references are invalid.
 		this.finalizeUIDReferences();
+
+		// This converts the map to be compatible with Prosu's PB2 MP module, by grouping dynamic objects into coop_restart.
+		if (this.options.use_pb2_module === 'Yes') {
+			this.convertToPB2MPModuleCompatible();
+		}
 	}
 
 	// Serializes the current PB2 map intp PB3 source code.
@@ -234,6 +246,10 @@ export class PB3Map {
 		// 2. We append necessary headers (loading module, custom scripts, etc..)
 		// -------------------------------
 		this.triggerGroups.map((triggerGroup) => (pb3SourceCode += `${triggerGroup.uid}=()=>_pb2TU('${triggerGroup.uid}');`));
+		pb3SourceCode += `//->Ditto->//{"operation":"define_global_vars"}\n`;
+
+		pb3SourceCode += serializeSpacer();
+		pb3SourceCode += serializeComment('Map initialization');
 
 		pb3SourceCode += PB3StandardMapHeader;
 
@@ -245,12 +261,22 @@ export class PB3Map {
 		const minX = this.worldBoundary.min.x;
 		const minY = this.worldBoundary.min.y;
 
-		let scriptIndex = 0;
+		pb3SourceCode += createMapConfigureScript(minX + EDITOR_ICON_WIDTH * this.scriptIndex++, minY + iconHeightGap.script).serialize();
 
-		pb3SourceCode += serializeMapConfigureScript(minX + EDITOR_ICON_WIDTH * scriptIndex++, minY + iconHeightGap.script);
+		if (this.options.use_pb2_module === 'Yes') {
+			pb3SourceCode += createPB2ModuleStartScript(minX + EDITOR_ICON_WIDTH * this.scriptIndex++, minY + iconHeightGap.script).serialize();
+		}
+
 		// -------------------------------
 		// 3. We start serializing the individual game objects..
 		// -------------------------------
+
+		for (const variable of this.variables) {
+			pb3SourceCode += variable.serialize();
+		}
+
+		pb3SourceCode += serializeSpacer();
+		pb3SourceCode += serializeComment('Resources');
 
 		// Order matters.. we first serialize "assets" like objects..
 		for (const [_, surface] of Object.entries(this.wallSurfaces)) {
@@ -281,6 +307,9 @@ export class PB3Map {
 			pb3SourceCode += aiPreset.serialize();
 		}
 
+		pb3SourceCode += serializeSpacer();
+		pb3SourceCode += serializeComment('Static object instances');
+
 		for (const point of this.points) {
 			pb3SourceCode += point.serialize();
 		}
@@ -294,12 +323,27 @@ export class PB3Map {
 			pb3SourceCode += background.serialize();
 		}
 
-		for (const movable of this.movables) {
-			pb3SourceCode += movable.serialize();
-		}
-
 		for (const water of this.waters) {
 			pb3SourceCode += water.serialize();
+		}
+
+		for (const lamp of this.lamps) {
+			pb3SourceCode += lamp.serialize();
+		}
+
+		for (const decoration of this.decorations) {
+			pb3SourceCode += decoration.serialize();
+		}
+
+		pb3SourceCode += serializeSpacer();
+		pb3SourceCode += serializeComment('Dynamic object instances');
+
+		for (const char of this.characters) {
+			pb3SourceCode += char.serialize();
+		}
+
+		for (const movable of this.movables) {
+			pb3SourceCode += movable.serialize();
 		}
 
 		for (const region of this.regions) {
@@ -310,24 +354,12 @@ export class PB3Map {
 			pb3SourceCode += useButton.serialize();
 		}
 
-		for (const lamp of this.lamps) {
-			pb3SourceCode += lamp.serialize();
-		}
-
 		for (const gun of this.guns) {
 			pb3SourceCode += gun.serialize();
 		}
 
-		for (const char of this.characters) {
-			pb3SourceCode += char.serialize();
-		}
-
 		for (const pb3Entity of this.pb3Entities) {
 			pb3SourceCode += pb3Entity.serialize();
-		}
-
-		for (const decoration of this.decorations) {
-			pb3SourceCode += decoration.serialize();
 		}
 
 		for (const timer of this.timers) {
@@ -342,14 +374,20 @@ export class PB3Map {
 		// 4. We append necessary footers (custom scripts, finalizeWorld, etc..)
 		// -------------------------------
 
-		pb3SourceCode += serializeForceRegenScript(minX + EDITOR_ICON_WIDTH * scriptIndex++, minY + iconHeightGap.script);
+		pb3SourceCode += serializeSpacer();
+		pb3SourceCode += serializeComment('Post map scripts');
 
 		if (this.hasGrenades) {
-			pb3SourceCode += serializeSpawnGrenadesScript(minX + EDITOR_ICON_WIDTH * scriptIndex++, minY + iconHeightGap.script);
+			pb3SourceCode += createSpawnGrenadesScript(minX + EDITOR_ICON_WIDTH * this.scriptIndex++, minY + iconHeightGap.script).serialize();
 		}
 
-		// eslint-disable-next-line no-useless-assignment -- leaving the increment pattern on scriptIndex here for subsequent proceeding code.
-		pb3SourceCode += this.createMovableSpeedScript(minX + EDITOR_ICON_WIDTH * scriptIndex++, minY + iconHeightGap.script);
+		if (this.options.use_pb2_module === 'No') {
+			pb3SourceCode += this.createMovableSpeedScript(minX + EDITOR_ICON_WIDTH * this.scriptIndex++, minY + iconHeightGap.script).serialize();
+			pb3SourceCode += createForceRegenScript(minX + EDITOR_ICON_WIDTH * this.scriptIndex++, minY + iconHeightGap.script).serialize();
+		} else {
+			// if yes, these scripts are already in coop_restart trigger and coop_post_restart trigger and are serialized.
+			pb3SourceCode += createPB2ModuleEndScript(minX + EDITOR_ICON_WIDTH * this.scriptIndex++, minY + iconHeightGap.script).serialize();
+		}
 
 		pb3SourceCode += PB3StandardFooter;
 		return pb3SourceCode;
@@ -388,15 +426,24 @@ export class PB3Map {
 		for (let i = this.characters.length - 1; i >= 0; i--) {
 			// eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- Index is calculated from length, it couldn't be undefined.
 			const character = this.characters[i]!;
-			const skin = this.getOrCreateSkin(character.pb2SkinId);
 
-			if (!skin) {
-				this.characters.splice(i, 1);
-				continue;
+			if (character.pb2SkinId === -1 && this.options.use_pb2_module === 'Yes') {
+				// use MP's DM skin variable name..
+				character.skinUID = DM_SKIN_IDENTIFIER;
+			} else {
+				// get / create a new PB3 skin..
+				const skin = this.getOrCreateSkin(character.pb2SkinId);
+
+				// null, this means that this character should be removed. eg: drone controllers.
+				if (!skin) {
+					this.characters.splice(i, 1);
+					continue;
+				}
+
+				character.skinUID = skin.uid;
 			}
 
 			character.teamUID = this.getOrCreateTeam(character.pb2TeamId).uid;
-			character.skinUID = skin.uid;
 
 			if (!character.isAIInactive) {
 				character.aiPresetUID = this.getOrCreateAIPreset().uid;
@@ -620,6 +667,7 @@ export class PB3Map {
 				arguments: [],
 				maxCalls: parsePB2MaxCalls(pb2Object.$.maxcalls),
 				enabled: enabled,
+				autoExecute: false,
 				serialize() {
 					return serializeTriggerGroup(this);
 				},
@@ -629,7 +677,7 @@ export class PB3Map {
 		return triggers;
 	};
 
-	private createMovableSpeedScript = (x: number, y: number) => {
+	private createMovableSpeedScript = (x: number, y: number): Script => {
 		let code = `
 /* 
 	PB2 Script | Set all movable's initial speed 
@@ -641,7 +689,95 @@ export class PB3Map {
 			code += `${movable.uid}.SetSpeed(${movable.speed});\n`;
 		}
 
-		return makeScript(x, y, code);
+		return {
+			uid: '',
+			position: {
+				x: x,
+				y: y,
+			},
+			code: code,
+			serialize() {
+				return serializeScript(this);
+			},
+		};
+	};
+
+	private convertToPB2MPModuleCompatible = () => {
+		// 1. Create DM Skin variable.
+		this.variables.push({
+			uid: DM_SKIN_IDENTIFIER,
+			value: `'${DM_SKIN_VALUE}'`,
+			comment: serializeComment(`Set player's skin to this variable if you want them to use their own skins in COOP.`),
+			serialize() {
+				return serializeVariable(this);
+			},
+		});
+
+		// 2. Move all dynamic objects into trigger action `coop_restart` that auto-execute
+		const coop_restart_position = {
+			x: this.worldBoundary.min.x + EDITOR_ICON_WIDTH * this.scriptIndex++,
+			y: this.worldBoundary.min.y + iconHeightGap.script,
+		};
+
+		const coop_restart_children: EditorObject[] = [
+			...this.movables,
+			...this.regions,
+			...this.useButtons,
+			...this.guns,
+			...this.timers,
+			...this.triggerGroups,
+			...this.characters.filter((character) => !character.isPlayer),
+			this.createMovableSpeedScript(this.worldBoundary.min.x + EDITOR_ICON_WIDTH * this.scriptIndex++, this.worldBoundary.min.y + iconHeightGap.script),
+		];
+
+		// We have moved them.
+		this.movables = [];
+		this.regions = [];
+		this.useButtons = [];
+		this.guns = [];
+		this.timers = [];
+		this.triggerGroups = [];
+		this.characters = this.characters.filter((character) => character.isPlayer);
+
+		this.triggerGroups.push({
+			uid: 'globalThis.coop_restart',
+			position: coop_restart_position,
+			children: coop_restart_children,
+			arguments: [],
+			enabled: true,
+			maxCalls: Infinity,
+			autoExecute: true,
+			serialize() {
+				return serializeTriggerGroup(this);
+			},
+		});
+
+		// 3. Create trigger action `coop_post_restart` that auto-execute, containing our force regen script.
+		this.triggerGroups.push({
+			uid: 'globalThis.coop_post_restart',
+			position: {
+				x: this.worldBoundary.min.x + EDITOR_ICON_WIDTH * this.scriptIndex++,
+				y: this.worldBoundary.min.y + iconHeightGap.script,
+			},
+			children: [
+				// prettier-ignore
+				createForceRegenScript(
+					this.worldBoundary.min.x + EDITOR_ICON_WIDTH * this.scriptIndex++,
+					this.worldBoundary.min.y + iconHeightGap.script,
+				),
+			],
+			arguments: [],
+			enabled: true,
+			maxCalls: Infinity,
+			autoExecute: true,
+			serialize() {
+				return serializeTriggerGroup(this);
+			},
+		});
+
+		// 4. these are new, include them in all uids.
+		this.allUIDs.add('globalThis.coop_restart');
+		this.allUIDs.add('globalThis.coop_post_restart');
 	};
 
 	private finalizeUIDReferences = () => {
@@ -665,6 +801,7 @@ export class PB3Map {
 			...Object.values(this.pb3Entities),
 			...Object.values(this.decorations),
 			...Object.values(this.timers),
+			...Object.values(this.variables),
 			...this.points,
 		];
 
@@ -1128,6 +1265,7 @@ export class PB3Map {
 				arguments: ['rigid_body', '_', 'GSPEED'],
 				maxCalls: Infinity,
 				enabled: true,
+				autoExecute: false,
 				serialize() {
 					return serializeTriggerGroup(this);
 				},

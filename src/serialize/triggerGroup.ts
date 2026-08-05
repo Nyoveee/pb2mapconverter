@@ -20,8 +20,8 @@ export const serializeTriggerGroup = (triggerGroup: TriggerGroupEntity): string 
 		close_when_possible: false,
 		enabled: '1',
 		max_calls: `${triggerGroup.maxCalls}`,
-		auto_spawn: '0',
-		auto_spawn_arguments: '',
+		auto_spawn: triggerGroup.autoExecute ? '1' : '0',
+		auto_spawn_arguments: triggerArguments,
 		fail_call_callback: 'null',
 		fail_call_callback_same_arguments: '1',
 		children_properties_to_rewrite: '',
@@ -56,7 +56,12 @@ export const serializeTriggerGroup = (triggerGroup: TriggerGroupEntity): string 
 	// ----------------
 	// Last line..
 	// ----------------
-	const codeThree = `};${triggerGroup.uid}=_pb2T(${triggerGroup.uid},1,${triggerGroup.maxCalls},null,1);`;
+	let codeThree = `};${triggerGroup.uid}=_pb2T(${triggerGroup.uid},1,${triggerGroup.maxCalls},null,1);`;
+
+	if (triggerGroup.autoExecute) {
+		codeThree += `${triggerGroup.uid}(${triggerArguments});`;
+	}
+
 	const editor_object_three = { operation: 'close_layer_bracket' };
 
 	const lineThree = toPB3String({ code: codeThree, jsonObject: JSON.stringify(editor_object_three) });

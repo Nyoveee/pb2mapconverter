@@ -53,6 +53,7 @@ export interface TriggerGroupEntity extends EditorObject {
 	arguments: string[];
 	maxCalls: number;
 	enabled: boolean;
+	autoExecute: boolean;
 }
 
 export interface Vector extends EditorObject {
@@ -178,6 +179,19 @@ export interface TimerEntity extends EditorObject {
 	triggerToExecuteUID: string | null;
 	delay: number;
 	enabled: boolean;
+}
+
+// the variable is not actually string, but rather converts directly to javascript code.
+// for an example, a variable with uid of `x` and value of `2` will be serialized as x = 2;
+// this mimics exactly how we handle serialization for the properties of editor_object as well.
+export interface Variable extends EditorObject {
+	value: string;
+	comment: string | null;
+}
+
+export interface Script extends EditorObject {
+	position: Position;
+	code: string;
 }
 
 // ===============================================

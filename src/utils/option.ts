@@ -13,6 +13,7 @@ const optionSchema = z.object({
 	antigravity: z.enum(['Entity', 'Static Decoration']),
 	generate_terrain: z.enum(['Yes', 'No']),
 	acid_type: z.enum(['Corrosive', 'Toxic']),
+	use_pb2_module: z.enum(['Yes', 'No']),
 });
 
 export type MapConversionOption = z.infer<typeof optionSchema>;
@@ -22,6 +23,7 @@ export const defaultOptions: MapConversionOption = {
 	antigravity: 'Entity',
 	generate_terrain: 'Yes',
 	acid_type: 'Corrosive',
+	use_pb2_module: 'Yes',
 };
 
 export const validateOptions = (requestOption: unknown): MapConversionOption => {
