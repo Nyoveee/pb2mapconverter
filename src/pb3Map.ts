@@ -40,6 +40,7 @@ import type {
 	PB3Entity,
 	DecorationEntity,
 	TimerEntity,
+	EditorObject,
 } from './pb2Objects/entity-types.js';
 import { getBackgroundKey, type BackgroundIdentifierStr } from './pb2Objects/surface.js';
 import { getLiquidKindKey, type LiquidIdentifierStr } from './pb2Objects/liquid.js';
@@ -125,6 +126,8 @@ export class PB3Map {
 	private worldBoundary: WorldBoundary = { min: { x: Infinity, y: Infinity }, max: { x: -Infinity, y: -Infinity } };
 	private hasGrenades = false;
 	private usedUIDs: Record<string, number> = {};
+	private allUIDs: Set<string> = new Set<string>();
+
 	// ============================================================================================
 
 	// Constructs a valid representation of the PB2 map, given an opaque parsed XML object.
@@ -203,6 +206,9 @@ export class PB3Map {
 
 		// Create trigger groups that attempt to emulate PB2 pushers via sub push force execute method.
 		this.createPusherTriggerGroups();
+
+		// This collates all UIDs, and verifies if any UID references are invalid.
+		this.finalizeUIDReferences();
 	}
 
 	// Serializes the current PB2 map intp PB3 source code.
@@ -212,40 +218,13 @@ export class PB3Map {
 		// -------------------------------
 		// 1. We declare all UID.. this is the `global vars declaration` section
 		// -------------------------------
-		let globalNames: string[] = [];
+		const globalNames: string[] = [];
 
 		if (this.options.movable_sounds === 'Yes') {
 			globalNames.push(movableSoundPresetVarName);
 		}
 
-		globalNames.push(...Object.values(this.wallSurfaces).map((s) => s.uid));
-		globalNames.push(...Object.values(this.backgroundSurfaces).map((s) => s.uid));
-		globalNames.push(...Object.values(this.movableSurfaces).map((s) => s.uid));
-		globalNames.push(...Object.values(this.liquidKinds).map((s) => s.uid));
-		globalNames.push(...Object.values(this.teams).map((s) => s.uid));
-		globalNames.push(...Object.values(this.skins).map((s) => s.uid));
-		globalNames.push(...Object.values(this.aiPresets).map((s) => s.uid));
-		globalNames.push(...Object.values(this.lamps).map((s) => s.uid));
-		globalNames.push(...Object.values(this.guns).map((s) => s.uid));
-		globalNames.push(...Object.values(this.waters).map((s) => s.uid));
-		globalNames.push(...Object.values(this.movables).map((s) => s.uid));
-		globalNames.push(...Object.values(this.characters).map((s) => s.uid));
-		globalNames.push(...Object.values(this.regions).map((s) => s.uid));
-		globalNames.push(...Object.values(this.pb3Entities).map((s) => s.uid));
-		globalNames.push(...Object.values(this.decorations).map((s) => s.uid));
-		globalNames.push(...Object.values(this.timers).map((s) => s.uid));
-		globalNames.push(...this.points.map((s) => s.uid));
-
-		for (const triggerGroup of this.triggerGroups) {
-			globalNames.push(triggerGroup.uid);
-
-			for (const editorObject of triggerGroup.children) {
-				if (editorObject.uid !== '') globalNames.push(editorObject.uid);
-			}
-		}
-
-		// remove all empty UIDs. (empty string are falsy)
-		globalNames = globalNames.filter(Boolean);
+		globalNames.push(...this.allUIDs);
 
 		if (globalNames.length > 0) {
 			pb3SourceCode += `var ${globalNames.join(', ')};`;
@@ -663,6 +642,74 @@ export class PB3Map {
 		}
 
 		return makeScript(x, y, code);
+	};
+
+	private finalizeUIDReferences = () => {
+		// ==========================================
+		// 1. Collate all UIDs into one set
+		// ==========================================
+		let sources: EditorObject[] = [
+			...Object.values(this.wallSurfaces),
+			...Object.values(this.backgroundSurfaces),
+			...Object.values(this.movableSurfaces),
+			...Object.values(this.liquidKinds),
+			...Object.values(this.teams),
+			...Object.values(this.skins),
+			...Object.values(this.aiPresets),
+			...Object.values(this.lamps),
+			...Object.values(this.guns),
+			...Object.values(this.waters),
+			...Object.values(this.movables),
+			...Object.values(this.characters),
+			...Object.values(this.regions),
+			...Object.values(this.pb3Entities),
+			...Object.values(this.decorations),
+			...Object.values(this.timers),
+			...this.points,
+		];
+
+		for (const triggerGroup of this.triggerGroups) {
+			sources.push(triggerGroup);
+
+			for (const editorObject of triggerGroup.children) {
+				if (editorObject.uid !== '') sources.push(editorObject);
+			}
+		}
+
+		// remove all empty UIDs. (empty string are falsy)
+		sources = sources.filter(Boolean);
+
+		// add it to a set
+		for (const item of sources) {
+			this.allUIDs.add(item.uid);
+		}
+
+		// ==========================================
+		// 2. Check for any invalid UID reference
+		// ==========================================
+		const nullIfInvalidUID = (uid: string) => {
+			if (this.allUIDs.has(uid)) {
+				return uid;
+			} else {
+				return null;
+			}
+		};
+
+		for (const timer of this.timers) {
+			timer.triggerToExecuteUID = timer.triggerToExecuteUID ? nullIfInvalidUID(timer.triggerToExecuteUID) : null;
+		}
+
+		for (const character of this.characters) {
+			character.triggerToExecuteOnDeathUID = character.triggerToExecuteOnDeathUID ? nullIfInvalidUID(character.triggerToExecuteOnDeathUID) : null;
+		}
+
+		for (const region of this.regions) {
+			region.triggerToExecuteUID = region.triggerToExecuteUID ? nullIfInvalidUID(region.triggerToExecuteUID) : null;
+		}
+
+		for (const useButton of this.useButtons) {
+			useButton.triggerToExecuteUID = useButton.triggerToExecuteUID ? nullIfInvalidUID(useButton.triggerToExecuteUID) : null;
+		}
 	};
 
 	private resolveUIDIndexReference = () => {
