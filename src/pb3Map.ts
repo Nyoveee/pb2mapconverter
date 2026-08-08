@@ -993,13 +993,15 @@ export class PB3Map {
 	};
 
 	private parsePB2Lamp = (pb2Objects: ParsedPB2XMLObject[]): LampEntity[] => {
+		const LAMP_MULTIPLIER = 0.3;
+
 		const lamps: LampEntity[] = pb2Objects.map(({ $: props }) => ({
 			uid: reformatPB2UID(props.uid),
 			position: {
 				x: Number(props.x ?? 0),
 				y: Number(props.y ?? 0),
 			},
-			power: Number(props.power ?? 0),
+			power: Number(props.power ?? 0) * LAMP_MULTIPLIER,
 			hasFlare: ['true', '1'].includes(props.flare ?? 'false'),
 			serialize() {
 				return serializeLamp(this);
