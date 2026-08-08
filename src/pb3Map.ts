@@ -721,23 +721,27 @@ export class PB3Map {
 
 		const coop_restart_children: EditorObject[] = [
 			...this.movables,
+			...this.backgrounds.filter((background) => background.attachedMovableUID),
 			...this.regions,
 			...this.useButtons,
 			...this.guns,
 			...this.timers,
 			...this.triggerGroups,
 			...this.characters.filter((character) => !character.isPlayer),
+			...this.pb3Entities,
 			this.createMovableSpeedScript(this.worldBoundary.min.x + EDITOR_ICON_WIDTH * this.scriptIndex++, this.worldBoundary.min.y + iconHeightGap.script),
 		];
 
 		// We have moved them.
 		this.movables = [];
+		this.backgrounds = this.backgrounds.filter((background) => !background.attachedMovableUID);
 		this.regions = [];
 		this.useButtons = [];
 		this.guns = [];
 		this.timers = [];
 		this.triggerGroups = [];
 		this.characters = this.characters.filter((character) => character.isPlayer);
+		this.pb3Entities = [];
 
 		this.triggerGroups.push({
 			uid: 'globalThis.coop_restart',
