@@ -1,0 +1,46 @@
+{
+	"header": {
+		"title": "Convert PB2 maps to PB3 creation",
+		"subtitle": "Upload your PB2 XML files here! Open sourced on <github>github</github>."
+	},
+	"main": {
+		"home": {
+			"info": "If you encounter any issues, bugs or have any feature request, please feel free to contact me on my <discord>Discord</discord>! Alternatively, you may create an <issue>issue</issue> on my github page.\n\nNOTE: If your browser freezes when attempting to preview or playtest, <warn>turn off 'Generate Terrain'</warn> in the Advanced Options.",
+			"upload": {
+				"prompt": "Upload XML file here",
+				"subtitle": "or drag & drop here",
+				"button": "Upload"
+			},
+			"options": {
+				"title": "Advanced Options",
+				"movable": {
+					"label": "Enable movable sounds",
+					"hint": "Specify whether movables should play the default PB2 sound when moved.\n(Muting movables trigger actions are not supported as of now.)\n\nOption\n- Yes (all movables play a sound when moved)\n- No (movables do not play sounds when moved)"
+				},
+				"antigravity": {
+					"label": "Antigravity object type",
+					"hint": "Specify whether to convert PB2 antigravity to Entity or Static Decoration.\n\nIn PB3, there is a dedicated antigravity <bold>entity</bold> that \n- is animated\n- has it's own hitbox\n- is affected by gravity\n\nChoosing Static Decoration would replace it with a static image, which resembles closer to PB2's behaviour. \n\nMy recommendation is to stick with entity and see if you tweak it's parameters to cater your map's needs. If you have mid-air antigravity however, static decoration maybe a better choice.\n\nOptions\n- Entity (Antigravity becomes PB3 entity)\n - Static Decoration (Antigravity becomes PB3 decoration)"
+				},
+				"terrain": {
+					"label": "Generate terrain",
+					"hint": "Specify whether to generate background terrain for certain walls. (if unsure, stick to Yes) \n\nIn PB3, there is the option to generate background terrain. Certain walls like grasses and sands looks much nicer when terrain generation is turned on. \n\nHOWEVER, there is a major bug in PB3 where some terrains may cause the map to be unplayable. Your browsermay hang and get stucked forever when clicking 'Play as tester' or 'Preview Map'. If that's the case, you have to disableterrain generation.\n\n(This bug is not related to me and is a PB3 bug, there's nothing I can do)\n\nOptions\n- Yes (Terrain generation is turned on)\n - No (Terrain generation is turned off)"
+				},
+				"acid": {
+					"label": "Acid type",
+					"hint": "Specify the liquid type for acids.\n\nOptions\n- Toxic (Makes radioactive ambient sound when nearby, doesn't destroy body parts)\n - Corrosive (Doesn't make ambient sound when nearby, destroy body parts)"
+				},
+				"pb2module": {
+					"label": "Use Prosu's PB2 Module?",
+					"hint": "Specify whether to convert the map in a way that is compatible with Prosu's PB2 MP module.\n\nMultiplayer in PB3 work differently compared to PB2. There's no inbuilt supported for COOP and DM, and PB3 by default does not use the stats of the players in the map when joining in MP.\n\nProsu's MP module makes the PB2 map work with PB3 MP, allowing you to play the map straight awayin multiplayer. This make the map works just like how PB2 works, with players in the map being used to determinethe stats (skins, health, etc..) of joining players.\n\nOptions\n- Yes (Convert map such that it's compatible with Prosu's PB2 MP module)\n - No (Do not convert, keeps map simpler)"
+				}
+			}
+		},
+		"result": {
+			"backButton": "← Back",
+			"title": "Results",
+			"info": "1. Copy the generated PB3 map source code.\n2. Go to your profile > creations > Make new Creation.\n3. Right click on the creation you have created and select 'Edit Creation'\n4. Go to 'File Contents' tab and paste the generated source code there.\n\nNOTE: If your browser freezes when attempting to preview or playtest, <warn>turn off 'Generate Terrain'</warn> in the Advanced Options.",
+			"copyNotify": "Copied!",
+			"copyButton": "Copy to Clipboard"
+		}
+	}
+}

@@ -13,26 +13,27 @@
         />
         <link rel="stylesheet" href="style.css" />
         <link rel="icon" type="image/x-icon" href="/favicon.ico">
-        <script src="index.js" defer></script>
+        <script type="module" src="i18n.js"></script>
+        <script type="module" src="index.js"></script>
     </head>
     <body>
         <div class="card">
             <!-- Upload Page -->
             <div id="uploadPage" class="page active">
                 <div class="header">
-                    <h1>Convert PB2 maps to PB3 creation</h1>
-                    <p>
-                        Upload your PB2 XML files here! Open sourced on <a href="https://github.com/Nyoveee/pb2mapconverter" target="_blank">github</a>. 
+                    <h1 data-i18n="header.title">Convert PB2 maps to PB3 creation</h1>
+                    <p data-i18n="header.subtitle">
+                        Upload your PB2 XML files here! Open sourced on <a data-i18n-slot="github" href="https://github.com/Nyoveee/pb2mapconverter" target="_blank">github</a>. 
                     </p>
                 </div>
 
                 <div class="info">
-                    <p>
+                    <p data-i18n="main.home.info">
                         If you encounter any issues, bugs or have any feature request, 
-                        please feel free to contact me on my <a class="text-color" href="https://discord.com/users/94308565455474688" target="_blank">Discord</a>!
-                        Alternatively, you may create an <a class="text-color" href="https://github.com/Nyoveee/pb2mapconverter/issues" target="_blank">issue</a> on my github page.
+                        please feel free to contact me on my <a data-i18n-slot="discord" class="text-color" href="https://discord.com/users/94308565455474688" target="_blank">Discord</a>!
+                        Alternatively, you may create an <a data-i18n-slot="issue" class="text-color" href="https://github.com/Nyoveee/pb2mapconverter/issues" target="_blank">issue</a> on my github page.
                         <br/><br/>
-                        NOTE: If your browser freezes when attempting to preview or playtest, <b class="warning-color">turn off 'Generate Terrain'</b> in the Advanced Options.
+                        NOTE: If your browser freezes when attempting to preview or playtest, <b data-i18n-slot="warn" class="warning-color">turn off 'Generate Terrain'</b> in the Advanced Options.
                     </p>
                 </div>
 
@@ -45,8 +46,8 @@
                             <line x1="12" y1="3" x2="12" y2="15" />
                         </svg>
                     </div>
-                    <div class="drop-label">Upload XML file here</div>
-                    <div class="drop-sub">or drag &amp; drop here</div>
+                    <div data-i18n="main.home.upload.prompt" class="drop-label">Upload XML file here</div>
+                    <div data-i18n="main.home.upload.subtitle" class="drop-sub">or drag &amp; drop here</div>
                 </div>
 
                 <div class="file-info" id="fileInfo">
@@ -57,7 +58,7 @@
 
                 <div class="panel" id="optionsPanel">
                     <div class="panel-header" id="panelHeader">
-                        <span>Advanced Options</span>
+                        <span data-i18n="main.home.options.title">Advanced Options</span>
                         <svg class="panel-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <polyline points="6 9 12 15 18 9" />
                         </svg>
@@ -65,14 +66,14 @@
                     <div class="panel-body" id="panelBody">
                         <div class="option-row">
                             <div class="option-label-wrap">
-                                <span class="option-label">Enable movable sounds</span>
+                                <span class="option-label" data-i18n="main.home.options.movable.label">Enable movable sounds</span>
                                 <span class="hint-wrap">
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                         <circle cx="12" cy="12" r="10" />
                                         <path d="M12 16v-4" />
                                         <path d="M12 8h.01" />
                                     </svg>
-                                    <span class="hint-tooltip">
+                                    <span class="hint-tooltip" data-i18n="main.home.options.movable.hint">
                                         Specify whether movables should play the default PB2 sound when moved.
                                         <br/>
                                         (Muting movables trigger actions are not supported as of now.)
@@ -82,7 +83,6 @@
                                         - Yes (all movables play a sound when moved)
                                         <br/> 
                                         - No (movables do not play sounds when moved)
-                                        <br/><br/>
                                     </span>
                                 </span>
                             </div>
@@ -96,17 +96,17 @@
 
                         <div class="option-row">
                             <div class="option-label-wrap">
-                                <span class="option-label">Antigravity object type</span>
+                                <span class="option-label" data-i18n="main.home.options.antigravity.label">Antigravity object type</span>
                                 <span class="hint-wrap">
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                         <circle cx="12" cy="12" r="10" />
                                         <path d="M12 16v-4" />
                                         <path d="M12 8h.01" />
                                     </svg>
-                                    <span class="hint-tooltip">
+                                    <span class="hint-tooltip" data-i18n="main.home.options.antigravity.hint">
                                         Specify whether to convert PB2 antigravity to Entity or Static Decoration.
                                         <br/><br/>
-                                        In PB3, there is a dedicated antigravity <b>entity</b> that 
+                                        In PB3, there is a dedicated antigravity <b data-i18n-slot="bold">entity</b> that 
                                         <br/>- is animated
                                         <br/>- has it's own hitbox
                                         <br/>- is affected by gravity
@@ -134,14 +134,14 @@
 
                         <div class="option-row">
                             <div class="option-label-wrap">
-                                <span class="option-label">Generate terrain</span>
+                                <span class="option-label" data-i18n="main.home.options.terrain.label">Generate terrain</span>
                                 <span class="hint-wrap">
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                         <circle cx="12" cy="12" r="10" />
                                         <path d="M12 16v-4" />
                                         <path d="M12 8h.01" />
                                     </svg>
-                                    <span class="hint-tooltip">
+                                    <span class="hint-tooltip" data-i18n="main.home.options.terrain.hint">
                                         Specify whether to generate background terrain for certain walls. (if unsure, stick to Yes) 
                                         <br/><br/>
                                         In PB3, there is the option to generate background terrain. Certain walls like grasses and sands looks much nicer 
@@ -171,14 +171,14 @@
 
                         <div class="option-row">
                             <div class="option-label-wrap">
-                                <span class="option-label">Acid type</span>
+                                <span class="option-label" data-i18n="main.home.options.acid.label">Acid type</span>
                                 <span class="hint-wrap">
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                         <circle cx="12" cy="12" r="10" />
                                         <path d="M12 16v-4" />
                                         <path d="M12 8h.01" />
                                     </svg>
-                                    <span class="hint-tooltip">
+                                    <span class="hint-tooltip" data-i18n="main.home.options.acid.hint">
                                         Specify the liquid type for acids.
                                         <br/><br/>
                                         Options
@@ -199,14 +199,14 @@
 
                         <div class="option-row">
                             <div class="option-label-wrap">
-                                <span class="option-label">Use Prosu's PB2 Module?</span>
+                                <span class="option-label" data-i18n="main.home.options.pb2module.label">Use Prosu's PB2 Module?</span>
                                 <span class="hint-wrap">
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                         <circle cx="12" cy="12" r="10" />
                                         <path d="M12 16v-4" />
                                         <path d="M12 8h.01" />
                                     </svg>
-                                    <span class="hint-tooltip">
+                                    <span class="hint-tooltip" data-i18n="main.home.options.pb2module.hint">
                                         Specify whether to convert the map in a way that is compatible with Prosu's PB2 MP module.
                                         <br/><br/>
                                         Multiplayer in PB3 work differently compared to PB2. There's no inbuilt supported for COOP and DM, and 
@@ -239,21 +239,21 @@
                     <div class="progress-bar" id="progressBar"></div>
                 </div>
 
-                <button class="btn btn-primary" id="submitBtn" disabled>Upload</button>
+                <button class="btn btn-primary" id="submitBtn" disabled data-i18n="main.home.upload.button">Upload</button>
 
                 <div class="status" id="status"></div>
             </div>
 
             <!-- Results Page -->
             <div id="resultsPage" class="page">
-                <button class="btn btn-secondary back-btn" id="backBtn">← Back</button>
+                <button class="btn btn-secondary back-btn" id="backBtn" data-i18n="main.result.backButton">← Back</button>
 
                 <div class="result-header">
                     <div>
-                        <h1>Results</h1>
+                        <h1 data-i18n="main.result.title">Results</h1>
 
                         <div class="info">
-                            <p>
+                            <p data-i18n="main.result.info">
                                 1. Copy the generated PB3 map source code.
                                 <br />
                                 2. Go to your profile > creations > Make new Creation.
@@ -262,7 +262,7 @@
                                 <br />
                                 4. Go to 'File Contents' tab and paste the generated source code there.
                                 <br /><br />
-                                NOTE: If your browser freezes when attempting to preview or playtest, <b class="warning-color">turn off 'Generate Terrain'</b> in the Advanced Options.
+                                NOTE: If your browser freezes when attempting to preview or playtest, <b data-i18n-slot="warn" class="warning-color">turn off 'Generate Terrain'</b> in the Advanced Options.
                             </p>
                         </div>
                     </div>
@@ -272,9 +272,13 @@
                     <textarea class="content-textarea" id="contentTextarea" readonly></textarea>
                 </div>
 
-                <div class="copy-success" id="copySuccess" style="display: none">Copied!</div>
-                <button class="btn btn-primary copy-btn" id="copyBtn">Copy to Clipboard</button>
+                <div class="copy-success" id="copySuccess" style="display: none" data-i18n="main.result.copyNotify">Copied!</div>
+                <button class="btn btn-primary copy-btn" id="copyBtn" data-i18n="main.result.copyButton">Copy to Clipboard</button>
             </div>
+        </div>
+        <div class="lang-switcher" id="langSwitcher">
+            <button class="lang-btn active" data-lang="en">EN</button>
+            <button class="lang-btn" data-lang="zh">中文</button>
         </div>
     </body>
 </html>

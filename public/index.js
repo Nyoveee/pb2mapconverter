@@ -1,3 +1,5 @@
+import { LOCALE_STORAGE_KEY, translatePage } from './i18n.js';
+
 // State management
 const state = {
 	currentPage: 'upload',
@@ -212,3 +214,28 @@ copyBtn.addEventListener('click', async () => {
 		alert('Failed to copy to clipboard');
 	}
 });
+
+const langSwitcher = document.getElementById('langSwitcher');
+const langButtons = langSwitcher.querySelectorAll('.lang-btn');
+const savedLocale = localStorage.getItem(LOCALE_STORAGE_KEY);
+
+if (savedLocale) {
+	langButtons.forEach((btn) => {
+		btn.classList.toggle('active', btn.dataset.lang === savedLocale);
+	});
+}
+
+langSwitcher.addEventListener('click', async (e) => {
+	const btn = e.target.closest('.lang-btn');
+	if (!btn) return;
+
+	langButtons.forEach((b) => b.classList.remove('active'));
+	btn.classList.add('active');
+
+	const locale = btn.dataset.lang;
+	localStorage.setItem(LOCALE_STORAGE_KEY, locale);
+
+	await translatePage();
+});
+
+await translatePage();
